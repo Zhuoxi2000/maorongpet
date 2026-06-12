@@ -12,8 +12,15 @@ import crypto from "node:crypto";
 export const QUOTA = {
   ANON_DAILY: 1,    // 未登录：每 IP 每天免费张数（保留"打开就能用"的体验）
   USER_DAILY: 3,    // 登录后：每天免费张数
-  REF_BONUS: 5,     // 邀请奖励：双方各得的张数
+  REF_BONUS: 3,     // 邀请奖励：双方各得的张数
   REF_EARN_CAP: 30, // 单个用户通过邀请最多赚的张数（防刷上限）
+};
+
+/* ---------- 付费包（Stripe，单位美分；调价只改这里） ---------- */
+export const PACKS = {
+  small: { credits: 30,  amount: 499,  name: "小食包 · 30 张" },
+  mid:   { credits: 80,  amount: 999,  name: "加餐包 · 80 张", popular: true },
+  large: { credits: 200, amount: 1999, name: "豪华包 · 200 张" },
 };
 
 /* ---------- Redis（Upstash REST，无需 npm 依赖） ---------- */
@@ -101,6 +108,26 @@ export async function bumpUsed(kind, id) {
   const n = await redis("INCR", key);
   if (n === 1) await redis("EXPIRE", key, 90000); // 25h 自动过期
   return n;
+}
+
+/* ---------- 埋点（日维度计数器 + 模板维度累计，/api/stats 汇总展示） ---------- */
+export async function bump(name, by = 1) {
+  const key = `stat:${today()}:${name}`;
+  const n = await redis("INCRBY", key, by);
+  if (n === by) await redis("EXPIRE", key, 60 * 86400); // 留 60 天
+  return n;
+}
+
+// 记录今日活跃访客（登录用 sub，匿名用 ip+ua 的哈希），算次日回访用
+export async function dauTouch(visitorId) {
+  const key = `dau:${today()}`;
+  await redis("SADD", key, visitorId);
+  await redis("EXPIRE", key, 9 * 86400);
+}
+
+export function anonVisitorId(req) {
+  const raw = clientIp(req) + "|" + (req.headers["user-agent"] || "");
+  return "a:" + crypto.createHash("sha256").update(raw).digest("hex").slice(0, 16);
 }
 
 // 给前端展示用的额度快照（只含公开字段）

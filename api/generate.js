@@ -9,7 +9,7 @@
 
 import {
   QUOTA, redis, redisReady, readSession,
-  getUser, usedToday, bumpUsed, clientIp, quotaFor,
+  getUser, usedToday, bumpUsed, clientIp, quotaFor, bump,
 } from "./_lib.js";
 
 export const config = { api: { bodyParser: { sizeLimit: "8mb" } } };
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   if (!apiKey) return res.status(503).json({ error: "API key 未配置" });
 
   // ---- 校验输入 ----
-  const { image, prompt } = req.body || {};
+  const { image, prompt, templateId } = req.body || {};
   if (!image || !prompt) return res.status(400).json({ error: "缺少 image 或 prompt" });
   const match = image.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
   if (!match) return res.status(400).json({ error: "图片格式不正确" });
@@ -115,6 +115,13 @@ export default async function handler(req, res) {
         } else {
           await bumpUsed("ip", ip);
         }
+
+        // 埋点：生成总数 + 各模板生成数
+        await bump("generate");
+        if (typeof templateId === "string" && /^[a-z0-9_-]{1,24}$/i.test(templateId)) {
+          await redis("HINCRBY", "stat:tpl", templateId, 1);
+        }
+
         quota = await quotaFor(user ? sub : null, ip);
       } catch (e) {
         console.error("quota consume failed:", e);

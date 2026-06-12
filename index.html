@@ -68,6 +68,34 @@ header{
 .menu button{display:block;width:100%;text-align:left;padding:9px 8px;border-radius:8px;font-size:13px;color:var(--ink)}
 .menu button:hover{background:var(--blush)}
 
+/* ---------- 购买额度弹窗 ---------- */
+.modal-mask{
+  position:fixed;inset:0;background:rgba(62,47,37,.45);z-index:100;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.modal{
+  background:var(--paper);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:26px 24px;max-width:560px;width:100%;text-align:center;animation:rise .3s ease;
+}
+.modal h3{font-family:var(--font-display);font-size:22px;font-weight:400;margin-bottom:4px}
+.modal .modal-sub{font-size:13px;color:var(--ink-soft);margin-bottom:18px}
+.packs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.pack{
+  background:var(--card);border:2px solid var(--line);border-radius:14px;
+  padding:18px 10px;position:relative;transition:all .15s;
+}
+.pack:hover{transform:translateY(-3px);border-color:var(--cocoa);box-shadow:var(--shadow)}
+.pack.popular{border-color:var(--cocoa)}
+.pack .tag{
+  position:absolute;top:-9px;left:50%;transform:translateX(-50%);
+  background:var(--cocoa);color:#fff;font-size:10px;padding:1px 10px;border-radius:999px;white-space:nowrap;
+}
+.pack .credits{font-size:24px;font-weight:700;color:var(--cocoa)}
+.pack .credits small{font-size:13px;font-weight:400}
+.pack .price{font-size:16px;font-weight:700;margin-top:4px}
+.pack .per{font-size:11px;color:var(--ink-soft);margin-top:2px}
+@media (max-width:480px){ .packs{grid-template-columns:1fr} }
+
 /* ---------- 邀请卡片 ---------- */
 .invite{
   max-width:440px;margin:18px auto 0;background:var(--card);border:1.5px dashed var(--cocoa);
@@ -208,6 +236,7 @@ input[type=file]{display:none}
   border:1px solid #F2CDBC;border-radius:12px;padding:12px 16px;font-size:14px;text-align:center;
 }
 .error.active{display:block}
+.error.good{background:#EFF7EC;color:#3E6B3A;border-color:#CDE3C8}
 
 footer{
   max-width:760px;margin:0 auto;padding:0 20px 40px;text-align:center;
@@ -232,7 +261,8 @@ footer .promises span::before{content:"🐾 ";font-size:11px}
     <button class="avatar-btn" id="avatarBtn" hidden aria-label="账号菜单"><img class="avatar" id="avatarImg" alt="头像"></button>
     <div class="menu" id="userMenu" hidden>
       <div class="menu-head"><span id="menuName"></span><br><small id="menuEmail"></small></div>
-      <button id="menuInvite">🐾 复制邀请链接（各得 5 张）</button>
+      <button id="menuInvite">🐾 复制邀请链接（各得 3 张）</button>
+      <button id="menuBuy" hidden>🍖 购买额度</button>
       <button id="menuLogout">退出登录</button>
     </div>
   </div>
@@ -288,10 +318,20 @@ footer .promises span::before{content:"🐾 ";font-size:11px}
       <button class="btn btn-ghost" id="newPhoto">换张照片</button>
     </div>
     <div class="invite" id="inviteCard" hidden>
-      <span>喜欢的话，分享给朋友——你和 TA 各得 <b>5 张</b>奖励额度 🐾</span>
+      <span id="inviteText">喜欢的话，分享给朋友——你和 TA 各得 <b>3 张</b>奖励额度 🐾</span>
       <button class="btn btn-ghost" id="inviteBtn">复制邀请链接</button>
     </div>
   </section>
+
+  <!-- 购买额度弹窗 -->
+  <div class="modal-mask" id="payMask" hidden>
+    <div class="modal">
+      <h3>给毛孩子加餐 🍖</h3>
+      <p class="modal-sub">奖励额度永不过期，每日免费用完后自动使用</p>
+      <div class="packs" id="packList"></div>
+      <button class="link-btn" id="payClose">先不用了</button>
+    </div>
+  </div>
 
   <div class="error" id="errorBox"></div>
 </main>
@@ -321,6 +361,18 @@ const TEMPLATES = [
   {cat:"艺术风格", id:"film",   emo:"📷", name:"复古胶片", desc:"九十年代的旧时光",
    prompt:"Transform this pet photo into a vintage 35mm film photograph, Kodak warm tones, subtle grain, soft faded contrast, nostalgic 1990s mood, keep the pet completely realistic and recognizable.",
    demo:{filter:"sepia(.3) saturate(.85) contrast(.95) brightness(1.05)", grain:true, vignette:.35}},
+  {cat:"艺术风格", id:"royal",  emo:"👑", name:"皇家贵族", desc:"戴上王冠君临天下", hot:true,
+   prompt:"Transform this pet photo into a majestic Renaissance royal portrait: the pet wearing an ornate gold crown and rich velvet royal robe with ermine trim, regal palace backdrop, classical oil painting style, keep the pet's exact facial features, fur pattern and colors perfectly recognizable.",
+   demo:{filter:"sepia(.4) saturate(1.4) contrast(1.18)", vignette:.5, sticker:"👑", pos:"head"}},
+  {cat:"艺术风格", id:"felt",   emo:"🧶", name:"羊毛毡手作", desc:"软fufu的手工质感",
+   prompt:"Transform this pet into an adorable needle-felted wool figurine, handmade craft style, soft fuzzy wool texture, warm cozy lighting, photographed on a wooden table, keep the pet's fur colors and distinctive markings faithful to the photo.",
+   demo:{filter:"saturate(1.2) brightness(1.1) blur(0.8px) contrast(.92)", vignette:0}},
+  {cat:"艺术风格", id:"clay",   emo:"🎬", name:"黏土动画", desc:"定格动画里的小演员",
+   prompt:"Transform this pet into a charming claymation stop-motion character, smooth clay texture with subtle handmade imperfections, vibrant colors, whimsical miniature set background, keep the pet's markings and face clearly recognizable.",
+   demo:{filter:"saturate(1.5) contrast(1.15) brightness(1.05) blur(0.3px)", vignette:.15}},
+  {cat:"艺术风格", id:"popart", emo:"🌈", name:"波普艺术", desc:"安迪·沃霍尔同款",
+   prompt:"Transform this pet photo into a bold pop art portrait, Andy-Warhol-inspired high-contrast colors, flat graphic shapes, vivid complementary color background, keep the pet's facial features and markings clearly recognizable.",
+   demo:{filter:"saturate(2.4) contrast(1.5) brightness(1.05)", vignette:0}},
   // 动漫化
   {cat:"动漫化", id:"ghibli", emo:"🌿", name:"治愈动画", desc:"宫崎骏世界的小住客", hot:true,
    prompt:"Transform this pet into a heartwarming hand-drawn anime style character, Studio-Ghibli-inspired soft colors, big expressive eyes, lush natural background, keep the pet's fur colors and distinctive markings faithful to the photo.",
@@ -331,6 +383,9 @@ const TEMPLATES = [
   {cat:"动漫化", id:"threed", emo:"🧸", name:"3D 萌系", desc:"像从动画电影走出来",
    prompt:"Transform this pet into an adorable 3D animated movie character, Pixar-style rendering, soft studio lighting, big cute eyes, fluffy detailed fur matching the original colors and patterns exactly.",
    demo:{filter:"saturate(1.4) contrast(1.18) brightness(1.06) blur(0.4px)", vignette:.2}},
+  {cat:"动漫化", id:"cartoon", emo:"📺", name:"美式卡通", desc:"周六早晨的动画片",
+   prompt:"Transform this pet into a cheerful American cartoon character, bold clean outlines, flat bright colors, expressive happy face, fun simple background, keep the pet's fur colors and distinctive markings faithful to the photo.",
+   demo:{filter:"saturate(1.7) contrast(1.3) brightness(1.06)", vignette:0}},
   // 换装配饰
   {cat:"换装配饰", id:"suit",  emo:"🤵", name:"西装绅士", desc:"今天它是总裁", 
    prompt:"Edit this pet photo: dress the pet in an elegant tailored suit with a bow tie, professional studio portrait background, keep the pet's face, fur and expression completely unchanged and photorealistic.",
@@ -341,6 +396,18 @@ const TEMPLATES = [
   {cat:"换装配饰", id:"collar",emo:"💎", name:"珍珠项圈", desc:"低调又奢华",
    prompt:"Edit this pet photo: add an elegant pearl collar necklace on the pet, soft glamour studio lighting, keep the pet's face, fur and pose completely unchanged and photorealistic.",
    demo:{filter:"brightness(1.06) contrast(1.05)", sticker:"📿", pos:"chest"}},
+  {cat:"换装配饰", id:"astro", emo:"🚀", name:"宇航员", desc:"代表毛星出征宇宙",
+   prompt:"Edit this pet photo: dress the pet in a realistic white astronaut spacesuit with the helmet visor open showing the face, starry space and Earth in the background, keep the pet's face and fur completely unchanged and photorealistic.",
+   demo:{filter:"contrast(1.1) brightness(.95) saturate(1.1)", vignette:.4, sticker:"🚀", pos:"head"}},
+  {cat:"换装配饰", id:"cowboy", emo:"🤠", name:"西部牛仔", desc:"狂野西部小警长",
+   prompt:"Edit this pet photo: add a brown leather cowboy hat and a red bandana on the pet, golden-hour western prairie background, keep the pet's face and fur completely unchanged and photorealistic.",
+   demo:{filter:"sepia(.25) saturate(1.2) contrast(1.08)", vignette:.3, sticker:"🤠", pos:"head"}},
+  {cat:"换装配饰", id:"grad",  emo:"🎓", name:"毕业纪念照", desc:"恭喜毛孩子毕业啦", hot:true,
+   prompt:"Edit this pet photo: dress the pet in a graduation cap and gown holding a diploma, celebratory campus background with soft bokeh, keep the pet's face and fur completely unchanged and photorealistic.",
+   demo:{filter:"contrast(1.08) brightness(1.04)", sticker:"🎓", pos:"head"}},
+  {cat:"换装配饰", id:"headshot", emo:"💼", name:"职业形象照", desc:"LinkedIn 头像就它了",
+   prompt:"Edit this pet photo: turn it into a professional LinkedIn-style business headshot, the pet wearing a smart business suit and tie, clean neutral studio background, soft professional lighting, keep the pet's face and fur completely unchanged and photorealistic.",
+   demo:{filter:"saturate(.85) contrast(1.12) brightness(1.06)", sticker:"💼", pos:"chest"}},
   // 节日限定
   {cat:"节日限定", id:"bday", emo:"🎂", name:"生日派对", desc:"给寿星拍张纪念照", hot:true,
    prompt:"Edit this pet photo: add a colorful birthday party hat on the pet's head, confetti and balloons in the background, festive warm lighting, keep the pet's face and fur completely unchanged and photorealistic.",
@@ -351,6 +418,9 @@ const TEMPLATES = [
   {cat:"节日限定", id:"newyear", emo:"🧧", name:"新春拜年", desc:"红红火火过大年",
    prompt:"Edit this pet photo: dress the pet in a traditional Chinese New Year red tang suit, festive red lanterns and gold decorations in the background, keep the pet's face and fur completely unchanged and photorealistic.",
    demo:{filter:"saturate(1.35) contrast(1.12) brightness(1.03)", sticker:"🧧", pos:"chest"}},
+  {cat:"节日限定", id:"beach", emo:"🏖️", name:"夏日海滩", desc:"墨镜一戴谁都不爱", hot:true,
+   prompt:"Edit this pet photo: put stylish sunglasses on the pet, tropical beach background with palm trees and turquoise sea, bright summer sunlight, keep the pet's face and fur completely unchanged and photorealistic.",
+   demo:{filter:"saturate(1.45) brightness(1.12) contrast(1.05)", sticker:"🕶️", pos:"head"}},
 ];
 
 const LOADING_LINES = [
@@ -370,7 +440,7 @@ const $ = id => document.getElementById(id);
    后端配置好后（/api/me 返回 configured:true）自动启用；
    否则保持纯演示模式，登录相关 UI 全部隐藏。
 ========================================================= */
-let auth = { configured:false, loggedIn:false, user:null, quota:null };
+let auth = { configured:false, loggedIn:false, user:null, quota:null, refBonus:3, packs:[], payEnabled:false };
 
 // 落地时捕获邀请码，注册时带上
 const refParam = new URLSearchParams(location.search).get("ref");
@@ -384,12 +454,44 @@ async function loadMe(){
     if(!d.configured) return;
     auth.configured = true;
     auth.quota = d.quota;
+    auth.refBonus = d.refBonus || 3;
+    auth.packs = d.packs || [];
+    auth.payEnabled = !!d.payEnabled;
     if(d.user){ auth.loggedIn = true; auth.user = d.user; }
     renderAccount();
     if(!auth.loggedIn) initGsi(d.googleClientId);
   }catch(e){ /* 本地/演示模式，无后端 */ }
 }
-loadMe();
+
+/* 从 Stripe 付款成功跳回：校验入账，刷新额度 */
+async function verifyPayment(sid){
+  history.replaceState(null, "", location.pathname);
+  try{
+    const r = await fetch("/api/pay?session_id=" + encodeURIComponent(sid));
+    const d = await r.json();
+    if(r.ok && d.paid){
+      if(d.quota){ auth.quota = d.quota; renderQuota(); }
+      showError("额度已到账，去给毛孩子拍新照片吧 🎉", true);
+    }else{
+      showError(d.error || "未查到付款结果，如已扣款额度稍后会自动到账");
+    }
+  }catch(e){ showError("未查到付款结果，如已扣款额度稍后会自动到账"); }
+}
+
+(async () => {
+  await loadMe();
+  const sid = new URLSearchParams(location.search).get("session_id");
+  if(sid && auth.configured) await verifyPayment(sid);
+})();
+
+/* ---------- 埋点（匿名计数，看板用） ---------- */
+function track(event, template){
+  if(!auth.configured) return;
+  fetch("/api/track", {
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ event, template })
+  }).catch(()=>{});
+}
 
 function initGsi(clientId, tries = 0){
   if(!window.google || !google.accounts || !google.accounts.id){
@@ -419,6 +521,9 @@ function renderAccount(){
   $("gsiBtn").hidden = auth.loggedIn || !auth.configured;
   $("avatarBtn").hidden = !auth.loggedIn;
   $("inviteCard").hidden = !auth.loggedIn;
+  $("menuBuy").hidden = !auth.payEnabled;
+  $("menuInvite").textContent = `🐾 复制邀请链接（各得 ${auth.refBonus} 张）`;
+  $("inviteText").innerHTML = `喜欢的话，分享给朋友——你和 TA 各得 <b>${auth.refBonus} 张</b>奖励额度 🐾`;
   if(auth.loggedIn){
     $("avatarImg").src = auth.user.picture || "";
     $("menuName").textContent = auth.user.name || "毛茸用户";
@@ -458,6 +563,36 @@ async function copyInvite(btn){
 $("menuInvite").onclick = e => copyInvite(e.currentTarget);
 $("inviteBtn").onclick = e => copyInvite(e.currentTarget);
 
+/* ---------- 购买额度 ---------- */
+function openPay(){
+  if(!auth.payEnabled) return;
+  if(!auth.loggedIn){ showError("先登录，购买的额度才能记在你的账号上～"); return; }
+  $("packList").innerHTML = auth.packs.map(p => `
+    <button class="pack ${p.popular ? "popular" : ""}" data-pack="${p.id}">
+      ${p.popular ? '<span class="tag">最划算</span>' : ""}
+      <div class="credits">${p.credits}<small> 张</small></div>
+      <div class="price">$${(p.amount/100).toFixed(2)}</div>
+      <div class="per">约 $${(p.amount/100/p.credits).toFixed(2)}/张</div>
+    </button>`).join("");
+  $("packList").querySelectorAll(".pack").forEach(b => b.onclick = () => buyPack(b.dataset.pack, b));
+  $("payMask").hidden = false;
+}
+async function buyPack(id, btn){
+  btn.disabled = true;
+  try{
+    const r = await fetch("/api/pay", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ pack: id })
+    });
+    const d = await r.json();
+    if(!r.ok || !d.url){ btn.disabled = false; return showError(d.error || "支付服务暂时不可用"); }
+    location.href = d.url; // 跳 Stripe 收银台
+  }catch(e){ btn.disabled = false; showError("支付服务暂时不可用，请稍后再试"); }
+}
+$("menuBuy").onclick = () => { $("userMenu").hidden = true; openPay(); };
+$("payClose").onclick = () => { $("payMask").hidden = true; };
+$("payMask").addEventListener("click", e => { if(e.target === $("payMask")) $("payMask").hidden = true; });
+
 /* ---------- 上传 ---------- */
 const dropzone = $("dropzone"), fileInput = $("fileInput");
 dropzone.addEventListener("click", () => fileInput.click());
@@ -482,6 +617,7 @@ function handleFile(file){
       c.width = Math.round(img.width*scale); c.height = Math.round(img.height*scale);
       c.getContext("2d").drawImage(img,0,0,c.width,c.height);
       srcDataUrl = c.toDataURL("image/jpeg",.92);
+      track("upload");
       $("previewImg").src = srcDataUrl;
       $("uploadFrame").style.display = "none";
       show("stepPick");
@@ -537,11 +673,12 @@ $("generateBtn").onclick = async () => {
       body:JSON.stringify({ image: srcDataUrl, prompt: selected.prompt, templateId: selected.id })
     });
     if(res.status === 402){
-      // 额度用完：未登录引导登录，已登录引导邀请
+      // 额度用完：未登录引导登录，已登录引导购买/邀请
       const d = await res.json().catch(() => ({}));
       hide("loading"); show("stepPick");
       showError(d.error || "今天的额度用完啦，明天再来～");
       if(d.code === "quota_anon" && window.google && google.accounts && google.accounts.id) google.accounts.id.prompt();
+      if(d.code === "quota") openPay();
       return;
     }
     if(!res.ok) throw new Error("api unavailable");
@@ -600,6 +737,7 @@ function demoRender(dataUrl, d){
 
 /* ---------- 结果操作 ---------- */
 $("downloadBtn").onclick = () => {
+  track("download", selected ? selected.id : "");
   const a = document.createElement("a");
   a.href = $("resultImg").src;
   a.download = `毛茸相馆_${selected?selected.name:"作品"}_${Date.now()}.jpg`;
@@ -622,7 +760,7 @@ function resetAll(){
 /* ---------- 工具 ---------- */
 function show(id){ $(id).classList.add("active"); }
 function hide(id){ $(id).classList.remove("active"); }
-function showError(msg){ const e=$("errorBox"); e.textContent=msg; e.classList.add("active"); }
+function showError(msg, good){ const e=$("errorBox"); e.textContent=msg; e.classList.toggle("good", !!good); e.classList.add("active"); }
 function hideError(){ $("errorBox").classList.remove("active"); }
 const sleep = ms => new Promise(r=>setTimeout(r,ms));
 </script>

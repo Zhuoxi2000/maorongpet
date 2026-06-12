@@ -8,7 +8,7 @@
 import crypto from "node:crypto";
 import {
   QUOTA, redis, redisReady, signSession, sessionCookie,
-  getUser, quotaFor, clientIp,
+  getUser, quotaFor, clientIp, bump,
 } from "./_lib.js";
 
 const ALPHA = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // 邀请码字符集，去掉易混淆的 I L O 0 1
@@ -78,6 +78,13 @@ export default async function handler(req, res) {
         "refEarned", "0",
         "createdAt", new Date().toISOString());
       user = await getUser(sub);
+
+      // 埋点：注册数 / 邀请注册数 / 累计用户
+      try {
+        await bump("signup");
+        if (referredBy) await bump("ref_signup");
+        await redis("INCR", "stat:total:users");
+      } catch (e) { console.error("signup track failed:", e); }
     }
 
     res.setHeader("Set-Cookie", sessionCookie(signSession(sub)));
