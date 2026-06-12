@@ -231,6 +231,22 @@ input[type=file]{display:none}
 .btn-primary:hover{background:var(--cocoa-deep)}
 .btn-ghost{background:var(--card);border:1.5px solid var(--line);color:var(--ink)}
 .btn-ghost:hover{border-color:var(--cocoa);color:var(--cocoa)}
+.btn-share{background:#07C160;color:#fff;font-weight:700;box-shadow:0 4px 0 #05974b}
+.btn-share:hover{background:#06ad56}
+.btn-share:active{transform:translateY(2px);box-shadow:0 2px 0 #05974b}
+
+/* 微信内打开的分享引导 */
+.wx-guide{
+  position:relative;max-width:360px;margin:16px auto 0;
+  background:#FFF9F1;border:1px dashed var(--cocoa);border-radius:12px;
+  padding:14px 16px;font-size:14px;color:var(--ink);line-height:1.7;text-align:center;
+}
+.wx-guide b{color:#07C160}
+.wx-guide small{color:var(--ink-soft);font-size:12px}
+.wx-arrow{
+  position:absolute;top:-14px;right:14px;font-size:26px;color:var(--cocoa);
+  animation:bob 1.6s ease-in-out infinite;
+}
 
 .error{
   display:none;max-width:520px;margin:18px auto 0;background:#FDEFEA;color:#9A4A2E;
@@ -314,9 +330,16 @@ footer .promises span::before{content:"🐾 ";font-size:11px}
     </div>
     <div><span class="demo-badge" id="demoBadge" hidden>演示模式 · 部署后接入 AI 即为真实生成效果</span></div>
     <div class="actions">
+      <button class="btn btn-share" id="shareBtn">分享给朋友 🐾</button>
       <button class="btn btn-primary" id="downloadBtn">保存照片</button>
       <button class="btn btn-ghost" id="retryStyle">换个风格</button>
       <button class="btn btn-ghost" id="newPhoto">换张照片</button>
+    </div>
+    <!-- 微信内打开时的分享引导 -->
+    <div class="wx-guide" id="wxGuide" hidden>
+      <span class="wx-arrow">↗</span>
+      点右上角 <b>···</b> → <b>发送给朋友</b> / <b>分享到朋友圈</b><br>
+      <small>想存到相册：长按上方图片 → 保存图片</small>
     </div>
     <div class="invite" id="inviteCard" hidden>
       <span id="inviteText">喜欢的话，分享给朋友——你和 TA 各得 <b>3 张</b>奖励额度 🐾</span>
@@ -700,6 +723,7 @@ $("generateBtn").onclick = async () => {
   $("captionStyle").textContent = selected.name + "的它";
   $("captionDate").textContent = new Date().toLocaleDateString("zh-CN");
   $("demoBadge").hidden = !isDemo;
+  $("wxGuide").hidden = true; // 新结果出来时收起上一次的微信分享引导
   hide("loading"); show("result");
   prepShareFile(resultUrl); // 提前把结果图转成 File，点"保存"时才能同步唤起系统分享（iOS 存相册）
 };
@@ -762,6 +786,39 @@ $("downloadBtn").onclick = async () => {
   a.href = $("resultImg").src;
   a.download = `毛茸相馆_${selected?selected.name:"作品"}_${Date.now()}.jpg`;
   a.click();
+};
+
+// 是否在微信内置浏览器里（这里 navigator.share 不可用，只能引导手动分享）
+const inWeChat = /micromessenger/i.test(navigator.userAgent);
+
+$("shareBtn").onclick = async () => {
+  track("share", selected ? selected.id : "");
+  // 微信内：无法程序化唤起分享，展示引导（指向右上角 ··· 菜单）
+  if(inWeChat){
+    $("wxGuide").hidden = false;
+    $("wxGuide").scrollIntoView({ behavior:"smooth", block:"center" });
+    return;
+  }
+  const shareData = {
+    title: "毛茸相馆",
+    text: `我用毛茸相馆给毛孩子拍了张「${selected?selected.name:"特别"}」风格的照片，你也来试试 🐾`,
+    url: location.origin,
+  };
+  // 优先连图一起分享（iOS 分享面板里能选微信/存相册）
+  if(shareFile && navigator.canShare && navigator.canShare({ files:[shareFile] })){
+    try{ await navigator.share({ ...shareData, files:[shareFile] }); return; }
+    catch(e){ if(e && e.name === "AbortError") return; }
+  }
+  // 不支持带图分享：退而分享链接
+  if(navigator.share){
+    try{ await navigator.share(shareData); return; }
+    catch(e){ if(e && e.name === "AbortError") return; }
+  }
+  // 桌面兜底：复制带链接的分享文案
+  try{
+    await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
+    showError("分享文案已复制，去粘贴给朋友吧 🐾", true);
+  }catch(e){ showError("可手动复制网址分享：" + shareData.url); }
 };
 $("retryStyle").onclick = () => { hide("result"); show("stepPick"); window.scrollTo({top:0,behavior:"smooth"}); };
 $("newPhoto").onclick = resetAll;
