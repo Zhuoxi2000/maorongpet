@@ -6,6 +6,7 @@
 <title>毛茸相馆 · 给宠物拍一张不一样的照片</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
   --paper:#FBF4EA;
@@ -53,6 +54,27 @@ header{
   border:1px solid var(--line);border-radius:999px;padding:6px 14px;white-space:nowrap;
 }
 .quota b{color:var(--cocoa);font-weight:700}
+
+/* ---------- 账号区 ---------- */
+.account{display:flex;align-items:center;gap:10px;position:relative}
+.avatar-btn{padding:0;border-radius:50%}
+.avatar{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);display:block;object-fit:cover}
+.menu{
+  position:absolute;top:44px;right:0;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;box-shadow:var(--shadow);padding:10px;min-width:230px;z-index:50;text-align:left;
+}
+.menu .menu-head{font-size:13px;padding:6px 8px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.menu .menu-head small{color:var(--ink-soft)}
+.menu button{display:block;width:100%;text-align:left;padding:9px 8px;border-radius:8px;font-size:13px;color:var(--ink)}
+.menu button:hover{background:var(--blush)}
+
+/* ---------- 邀请卡片 ---------- */
+.invite{
+  max-width:440px;margin:18px auto 0;background:var(--card);border:1.5px dashed var(--cocoa);
+  border-radius:14px;padding:12px 16px;font-size:13px;color:var(--ink);
+  display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;text-align:left;
+}
+.invite b{color:var(--cocoa)}
 
 /* ---------- 主体 ---------- */
 main{max-width:760px;margin:0 auto;padding:28px 20px 60px}
@@ -204,7 +226,16 @@ footer .promises span::before{content:"🐾 ";font-size:11px}
 
 <header>
   <div class="brand"><span class="paw">🐾</span><h1>毛茸相馆</h1></div>
-  <div class="quota">今日免费 <b id="quotaLeft">3</b> / 3 张</div>
+  <div class="account">
+    <div class="quota" id="quotaPill">今日免费 <b>3</b> / 3 张</div>
+    <div id="gsiBtn" hidden></div>
+    <button class="avatar-btn" id="avatarBtn" hidden aria-label="账号菜单"><img class="avatar" id="avatarImg" alt="头像"></button>
+    <div class="menu" id="userMenu" hidden>
+      <div class="menu-head"><span id="menuName"></span><br><small id="menuEmail"></small></div>
+      <button id="menuInvite">🐾 复制邀请链接（各得 5 张）</button>
+      <button id="menuLogout">退出登录</button>
+    </div>
+  </div>
 </header>
 
 <main>
@@ -256,6 +287,10 @@ footer .promises span::before{content:"🐾 ";font-size:11px}
       <button class="btn btn-ghost" id="retryStyle">换个风格</button>
       <button class="btn btn-ghost" id="newPhoto">换张照片</button>
     </div>
+    <div class="invite" id="inviteCard" hidden>
+      <span>喜欢的话，分享给朋友——你和 TA 各得 <b>5 张</b>奖励额度 🐾</span>
+      <button class="btn btn-ghost" id="inviteBtn">复制邀请链接</button>
+    </div>
   </section>
 
   <div class="error" id="errorBox"></div>
@@ -264,7 +299,7 @@ footer .promises span::before{content:"🐾 ";font-size:11px}
 <footer>
   <div class="promises">
     <span>照片 24 小时内自动删除</span>
-    <span>不用注册，打开就能用</span>
+    <span>免注册先体验 · 登录每天免费 3 张</span>
     <span>出图即成品，无需修图</span>
   </div>
   <p>毛茸相馆 · 用 AI 记录毛孩子的另一面</p>
@@ -325,10 +360,103 @@ const LOADING_LINES = [
 /* ---------- 状态 ---------- */
 let srcDataUrl = null;      // 用户原图
 let selected   = null;      // 选中的模板
-let quota      = 3;         // 每日免费额度（上线后由后端按 IP/设备校验，这里仅作前端展示）
+let quota      = 3;         // 仅演示模式（无后端）时的本地额度；线上额度由后端管
 let currentCat = "艺术风格";
 
 const $ = id => document.getElementById(id);
+
+/* =========================================================
+   账号 / 额度 / 邀请
+   后端配置好后（/api/me 返回 configured:true）自动启用；
+   否则保持纯演示模式，登录相关 UI 全部隐藏。
+========================================================= */
+let auth = { configured:false, loggedIn:false, user:null, quota:null };
+
+// 落地时捕获邀请码，注册时带上
+const refParam = new URLSearchParams(location.search).get("ref");
+if (refParam) localStorage.setItem("mr_ref", refParam);
+
+async function loadMe(){
+  try{
+    const r = await fetch("/api/me");
+    if(!r.ok) throw new Error();
+    const d = await r.json();
+    if(!d.configured) return;
+    auth.configured = true;
+    auth.quota = d.quota;
+    if(d.user){ auth.loggedIn = true; auth.user = d.user; }
+    renderAccount();
+    if(!auth.loggedIn) initGsi(d.googleClientId);
+  }catch(e){ /* 本地/演示模式，无后端 */ }
+}
+loadMe();
+
+function initGsi(clientId, tries = 0){
+  if(!window.google || !google.accounts || !google.accounts.id){
+    if(tries < 50) setTimeout(() => initGsi(clientId, tries + 1), 200);
+    return;
+  }
+  google.accounts.id.initialize({ client_id: clientId, callback: onGoogleCredential });
+  google.accounts.id.renderButton($("gsiBtn"), { type:"standard", shape:"pill", size:"medium", text:"signin", locale:"zh_CN" });
+}
+
+async function onGoogleCredential(resp){
+  try{
+    const r = await fetch("/api/auth", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ credential: resp.credential, ref: localStorage.getItem("mr_ref") || "" })
+    });
+    const d = await r.json();
+    if(!r.ok) return showError(d.error || "登录失败，请重试");
+    localStorage.removeItem("mr_ref");
+    auth.loggedIn = true; auth.user = d.user; auth.quota = d.quota;
+    renderAccount(); hideError();
+  }catch(e){ showError("登录失败，请重试"); }
+}
+
+function renderAccount(){
+  renderQuota();
+  $("gsiBtn").hidden = auth.loggedIn || !auth.configured;
+  $("avatarBtn").hidden = !auth.loggedIn;
+  $("inviteCard").hidden = !auth.loggedIn;
+  if(auth.loggedIn){
+    $("avatarImg").src = auth.user.picture || "";
+    $("menuName").textContent = auth.user.name || "毛茸用户";
+    $("menuEmail").textContent = auth.user.email || "";
+  }
+}
+
+function renderQuota(){
+  const pill = $("quotaPill");
+  if(!auth.configured){ pill.innerHTML = `今日免费 <b>${quota}</b> / 3 张`; return; }
+  const q = auth.quota || { dailyLimit:0, usedToday:0, credits:0 };
+  const left = Math.max(0, q.dailyLimit - q.usedToday);
+  pill.innerHTML = q.loggedIn
+    ? `今日免费 <b>${left}</b> / ${q.dailyLimit} 张` + (q.credits > 0 ? ` + 奖励 <b>${q.credits}</b>` : "")
+    : `免费体验 <b>${left}</b> / ${q.dailyLimit} 张`;
+}
+
+/* 账号菜单 */
+$("avatarBtn").onclick = e => { e.stopPropagation(); $("userMenu").hidden = !$("userMenu").hidden; };
+document.addEventListener("click", () => { $("userMenu").hidden = true; });
+$("userMenu").addEventListener("click", e => e.stopPropagation());
+$("menuLogout").onclick = async () => {
+  await fetch("/api/auth", { method:"DELETE" }).catch(()=>{});
+  location.reload();
+};
+
+/* 邀请链接 */
+async function copyInvite(btn){
+  if(!auth.user || !auth.user.refCode) return;
+  const link = `${location.origin}/?ref=${auth.user.refCode}`;
+  try{ await navigator.clipboard.writeText(link); }
+  catch(e){ window.prompt("复制这个邀请链接：", link); return; }
+  const t = btn.textContent;
+  btn.textContent = "已复制 🐾";
+  setTimeout(() => { btn.textContent = t; }, 1600);
+}
+$("menuInvite").onclick = e => copyInvite(e.currentTarget);
+$("inviteBtn").onclick = e => copyInvite(e.currentTarget);
 
 /* ---------- 上传 ---------- */
 const dropzone = $("dropzone"), fileInput = $("fileInput");
@@ -394,7 +522,7 @@ function renderGrid(){
 /* ---------- 生成 ---------- */
 $("generateBtn").onclick = async () => {
   if(!selected || !srcDataUrl) return;
-  if(quota <= 0) return showError("今天的免费额度用完啦，明天再来，或者升级会员无限生成～");
+  if(!auth.configured && quota <= 0) return showError("今天的免费额度用完啦，明天再来～");
   hideError();
   show("loading"); hide("stepPick"); hide("result");
   const line = LOADING_LINES[Math.floor(Math.random()*LOADING_LINES.length)];
@@ -408,10 +536,19 @@ $("generateBtn").onclick = async () => {
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({ image: srcDataUrl, prompt: selected.prompt, templateId: selected.id })
     });
+    if(res.status === 402){
+      // 额度用完：未登录引导登录，已登录引导邀请
+      const d = await res.json().catch(() => ({}));
+      hide("loading"); show("stepPick");
+      showError(d.error || "今天的额度用完啦，明天再来～");
+      if(d.code === "quota_anon" && window.google && google.accounts && google.accounts.id) google.accounts.id.prompt();
+      return;
+    }
     if(!res.ok) throw new Error("api unavailable");
     const data = await res.json();
     if(!data.image) throw new Error("bad response");
     resultUrl = data.image;
+    if(data.quota){ auth.quota = data.quota; renderQuota(); }
   } catch(e) {
     // 演示通道：本地模拟风格效果，保证 demo 完整可玩
     isDemo = true;
@@ -419,8 +556,7 @@ $("generateBtn").onclick = async () => {
     await sleep(1800); // 模拟真实等待感
   }
 
-  quota -= 1;
-  $("quotaLeft").textContent = quota;
+  if(!auth.configured){ quota -= 1; renderQuota(); }
   $("resultImg").src = resultUrl;
   $("captionStyle").textContent = selected.name + "的它";
   $("captionDate").textContent = new Date().toLocaleDateString("zh-CN");

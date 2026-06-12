@@ -8,13 +8,42 @@
 
 ## 二、正式部署（Vercel，免费档即可起步）
 
-1. 把整个文件夹推到一个 GitHub 仓库（保持 `index.html` 在根目录、`api/generate.js` 在 `api/` 目录）。
+1. 把整个文件夹推到一个 GitHub 仓库（保持 `index.html` 在根目录、`api/` 目录原样）。
 2. 到 vercel.com 用 GitHub 登录，Import 这个仓库，一路默认，Deploy。
 3. 到 https://aistudio.google.com/apikey 创建一个 Gemini API Key。
 4. 在 Vercel 项目 Settings → Environment Variables 添加 `GEMINI_API_KEY`，重新部署。
 5. 打开你的域名，上传照片测试——此时已经是真实 AI 生成。
 
 国内访问优化：Vercel 在国内不稳定时，可换 Cloudflare Pages + Functions（代码几乎不用改），或前端放国内 OSS、后端函数放腾讯云函数。
+
+## 二点五、开启账号 / 额度 / 邀请（可选，不配则回到无账号模式）
+
+账号体系是渐进增强的：下面 4 个环境变量配齐才启用；缺任何一个，`/api/me` 返回
+`configured:false`，前端自动隐藏登录入口，行为和老版本一样。
+
+**1. 存储：Upstash Redis（免费档够用）**
+在 Vercel 项目 → Storage → 选 Upstash for Redis → Create & Connect，
+`UPSTASH_REDIS_REST_URL` 和 `UPSTASH_REDIS_REST_TOKEN` 会自动注入（兼容旧版 `KV_REST_API_*`）。
+
+**2. Google 登录**
+到 https://console.cloud.google.com/apis/credentials 创建 OAuth client ID（类型选 Web application），
+Authorized JavaScript origins 填你的正式域名（如 `https://maorong.vercel.app`，本地调试再加 `http://localhost:3000`）。
+把 client ID 填进环境变量 `GOOGLE_CLIENT_ID`。
+
+**3. 会话密钥**
+`openssl rand -hex 32` 生成一个随机串，填进 `SESSION_SECRET`。
+
+**额度规则（改 `api/_lib.js` 顶部的 QUOTA 常量即可）：**
+
+| 身份 | 额度 |
+|---|---|
+| 未登录 | 1 张/天（按 IP，保留"打开就能用"的体验） |
+| 登录 | 3 张/天（按账号，UTC 日切） |
+| 被邀请注册 | 注册立得 +5 张奖励 |
+| 邀请人 | 被邀请人**第一次生成成功**后 +5 张（防注册刷量），累计上限 30 张 |
+
+邀请链接格式：`https://你的域名/?ref=邀请码`。登录用户在结果页和头像菜单里都能一键复制。
+额度只在生成成功后才扣；奖励额度不过期，在每日免费用完后自动消耗。
 
 ## 三、成本账
 
@@ -36,8 +65,8 @@
 ## 五、迭代路线（按验证优先级）
 
 1. **第 1–2 周**：模板每周上新 2–3 个，重点测节日类；免费图加可爱水印（角落小爪印 + 域名）。
-2. **验证下载率后**：接支付（虎皮椒/Stripe），上会员；限流从内存版换 Upstash Redis（`api/generate.js` 里已标注位置）。
-3. **有留存后**：宠物档案——同一只宠物的生成历史攒成相册（需要轻量账号体系，建议微信/手机号一键登录）。
+2. **验证下载率后**：接支付（Stripe），上 credit 包或会员（账号/额度/邀请体系已就绪，见上文"二点五"）。
+3. **有留存后**：宠物档案——同一只宠物的生成历史攒成相册（已有 Google 账号体系，直接挂在用户名下）。
 4. **二期再做**：人宠互动合成（"小狗趴头上"）。需要双图上传，人脸相似度容错极低，等模板类功能跑通现金流后再投入。
 
 ## 六、必须做的合规小事

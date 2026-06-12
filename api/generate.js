@@ -1,12 +1,16 @@
 // /api/generate —— Vercel Serverless Function
 // 职责：1) 把 API Key 藏在服务端  2) 调用 Gemini 2.5 Flash Image 做图生图
-//       3) 基础防刷（同 IP 每日限次，内存版；上线建议换 Upstash Redis）
+//       3) 额度控制：未登录每 IP 每天 ANON_DAILY 张；登录后每天 USER_DAILY 张，
+//          用完再扣邀请奖励 credits；额度只在生成成功后才扣。
+//       4) 邀请奖励发放：被邀请人第一次生成成功时，给邀请人 +REF_BONUS（防注册刷量）。
 //
-// 部署前在 Vercel 项目设置里添加环境变量：GEMINI_API_KEY
+// 部署前在 Vercel 项目设置里添加环境变量：GEMINI_API_KEY（见 README，还有登录相关的几个）
 // 获取 Key：https://aistudio.google.com/apikey
 
-// const DAILY_FREE = 3;                 // 每 IP 每日免费次数
-// const ipCounter = new Map();          // 简易内存限流（函数冷启动会重置，正式上线换 Redis）
+import {
+  QUOTA, redis, redisReady, readSession,
+  getUser, usedToday, bumpUsed, clientIp, quotaFor,
+} from "./_lib.js";
 
 export const config = { api: { bodyParser: { sizeLimit: "8mb" } } };
 
@@ -16,15 +20,6 @@ export default async function handler(req, res) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return res.status(503).json({ error: "API key 未配置" });
 
-  // ---- 限流（测试期间暂时关闭）----
-  // const ip = (req.headers["x-forwarded-for"] || "unknown").split(",")[0].trim();
-  // const today = new Date().toISOString().slice(0, 10);
-  // const key = `${ip}:${today}`;
-  // const used = ipCounter.get(key) || 0;
-  // if (used >= DAILY_FREE) {
-  //   return res.status(429).json({ error: "今日免费额度已用完" });
-  // }
-
   // ---- 校验输入 ----
   const { image, prompt } = req.body || {};
   if (!image || !prompt) return res.status(400).json({ error: "缺少 image 或 prompt" });
@@ -32,6 +27,40 @@ export default async function handler(req, res) {
   if (!match) return res.status(400).json({ error: "图片格式不正确" });
   const [, mimeType, base64Data] = match;
   if (base64Data.length > 8 * 1024 * 1024) return res.status(413).json({ error: "图片过大" });
+
+  // ---- 额度检查（Redis 未配置时跳过，便于本地/初期测试） ----
+  const ip = clientIp(req);
+  const sub = redisReady() ? readSession(req) : null;
+  let user = null;
+  let useCredit = false;
+  if (redisReady()) {
+    try {
+      if (sub) user = await getUser(sub);
+      if (user) {
+        const used = await usedToday("u", sub);
+        if (used >= QUOTA.USER_DAILY) {
+          if (user.credits > 0) {
+            useCredit = true;
+          } else {
+            return res.status(402).json({
+              error: `今天的免费额度用完啦～ 邀请好友注册，你和 TA 各得 ${QUOTA.REF_BONUS} 张奖励`,
+              code: "quota",
+            });
+          }
+        }
+      } else {
+        const used = await usedToday("ip", ip);
+        if (used >= QUOTA.ANON_DAILY) {
+          return res.status(402).json({
+            error: `今天的免费体验用完啦～ 登录后每天免费 ${QUOTA.USER_DAILY} 张，还能邀请好友拿奖励`,
+            code: "quota_anon",
+          });
+        }
+      }
+    } catch (e) {
+      console.error("quota check failed:", e); // Redis 故障时放行，不挡生成
+    }
+  }
 
   // ---- 调用 Gemini 2.5 Flash Image（图生图，宠物身份保持效果最佳）----
   try {
@@ -64,13 +93,37 @@ export default async function handler(req, res) {
     const parts = data?.candidates?.[0]?.content?.parts || [];
     const imgPart = parts.find(p => p.inlineData || p.inline_data);
     if (!imgPart) return res.status(502).json({ error: "本次生成未返回图片，请换张照片或风格重试" });
-
     const inline = imgPart.inlineData || imgPart.inline_data;
-    // ipCounter.set(key, used + 1);
+
+    // ---- 生成成功，记账 + 邀请奖励 ----
+    let quota = null;
+    if (redisReady()) {
+      try {
+        if (user) {
+          if (useCredit) await redis("HINCRBY", `user:${sub}`, "credits", -1);
+          else await bumpUsed("u", sub);
+
+          // 被邀请人第一次生成成功 → 给邀请人发奖励（有上限）
+          if (user.referredBy && user.refRewarded !== "1") {
+            await redis("HSET", `user:${sub}`, "refRewarded", "1");
+            const referrer = await getUser(user.referredBy);
+            if (referrer && referrer.refEarned < QUOTA.REF_EARN_CAP) {
+              await redis("HINCRBY", `user:${user.referredBy}`, "credits", QUOTA.REF_BONUS);
+              await redis("HINCRBY", `user:${user.referredBy}`, "refEarned", QUOTA.REF_BONUS);
+            }
+          }
+        } else {
+          await bumpUsed("ip", ip);
+        }
+        quota = await quotaFor(user ? sub : null, ip);
+      } catch (e) {
+        console.error("quota consume failed:", e);
+      }
+    }
 
     return res.status(200).json({
       image: `data:${inline.mimeType || inline.mime_type || "image/png"};base64,${inline.data}`,
-      remaining: 999,
+      quota,
     });
   } catch (err) {
     console.error(err);
