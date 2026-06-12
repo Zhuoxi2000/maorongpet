@@ -16,14 +16,14 @@ export default async function handler(req, res) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return res.status(503).json({ error: "API key 未配置" });
 
-  // ---- 限流 ----
-  const ip = (req.headers["x-forwarded-for"] || "unknown").split(",")[0].trim();
-  const today = new Date().toISOString().slice(0, 10);
-  const key = `${ip}:${today}`;
-  const used = ipCounter.get(key) || 0;
-  if (used >= DAILY_FREE) {
-    return res.status(429).json({ error: "今日免费额度已用完" });
-  }
+  // ---- 限流（测试期间暂时关闭）----
+  // const ip = (req.headers["x-forwarded-for"] || "unknown").split(",")[0].trim();
+  // const today = new Date().toISOString().slice(0, 10);
+  // const key = `${ip}:${today}`;
+  // const used = ipCounter.get(key) || 0;
+  // if (used >= DAILY_FREE) {
+  //   return res.status(429).json({ error: "今日免费额度已用完" });
+  // }
 
   // ---- 校验输入 ----
   const { image, prompt } = req.body || {};
@@ -66,11 +66,11 @@ export default async function handler(req, res) {
     if (!imgPart) return res.status(502).json({ error: "本次生成未返回图片，请换张照片或风格重试" });
 
     const inline = imgPart.inlineData || imgPart.inline_data;
-    ipCounter.set(key, used + 1);
+    // ipCounter.set(key, used + 1);
 
     return res.status(200).json({
       image: `data:${inline.mimeType || inline.mime_type || "image/png"};base64,${inline.data}`,
-      remaining: DAILY_FREE - used - 1,
+      remaining: 999,
     });
   } catch (err) {
     console.error(err);
