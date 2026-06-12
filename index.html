@@ -432,6 +432,7 @@ const LOADING_LINES = [
 let srcDataUrl = null;      // 用户原图
 let selected   = null;      // 选中的模板
 let quota      = 3;         // 仅演示模式（无后端）时的本地额度；线上额度由后端管
+let shareFile  = null;      // 结果图预先转好的 File，供移动端系统分享/存相册用
 let currentCat = "艺术风格";
 
 const $ = id => document.getElementById(id);
@@ -700,6 +701,7 @@ $("generateBtn").onclick = async () => {
   $("captionDate").textContent = new Date().toLocaleDateString("zh-CN");
   $("demoBadge").hidden = !isDemo;
   hide("loading"); show("result");
+  prepShareFile(resultUrl); // 提前把结果图转成 File，点"保存"时才能同步唤起系统分享（iOS 存相册）
 };
 
 /* 本地演示渲染：滤镜 + 贴纸 + 暗角 + 颗粒 */
@@ -737,8 +739,25 @@ function demoRender(dataUrl, d){
 }
 
 /* ---------- 结果操作 ---------- */
-$("downloadBtn").onclick = () => {
+// 结果图转 File（data URL → Blob → File），失败则置空、点保存时走下载兜底
+async function prepShareFile(url){
+  shareFile = null;
+  try{
+    const blob = await (await fetch(url)).blob();
+    const name = `毛茸相馆_${selected?selected.name:"作品"}_${Date.now()}.jpg`;
+    shareFile = new File([blob], name, { type: blob.type || "image/jpeg" });
+  }catch(e){ shareFile = null; }
+}
+
+$("downloadBtn").onclick = async () => {
   track("download", selected ? selected.id : "");
+  // 移动端（尤其 iOS）：唤起系统分享面板，可直接"存储图像"到相册或分享到微信
+  // 注意：share() 必须在用户手势中同步调用，故 shareFile 已在出图时预先备好
+  if(shareFile && navigator.canShare && navigator.canShare({ files:[shareFile] })){
+    try{ await navigator.share({ files:[shareFile] }); return; }
+    catch(e){ if(e && e.name === "AbortError") return; } // 用户取消分享，安静返回
+  }
+  // 桌面/不支持分享：常规下载
   const a = document.createElement("a");
   a.href = $("resultImg").src;
   a.download = `毛茸相馆_${selected?selected.name:"作品"}_${Date.now()}.jpg`;
