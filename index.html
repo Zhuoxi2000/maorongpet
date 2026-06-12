@@ -467,9 +467,12 @@ const $ = id => document.getElementById(id);
 ========================================================= */
 let auth = { configured:false, loggedIn:false, user:null, quota:null, refBonus:3, packs:[], payEnabled:false };
 
-// 落地时捕获邀请码，注册时带上
+// 落地时捕获邀请码，注册时带上（cookie 给手机 redirect 登录用，后端读）
 const refParam = new URLSearchParams(location.search).get("ref");
-if (refParam) localStorage.setItem("mr_ref", refParam);
+if (refParam){
+  localStorage.setItem("mr_ref", refParam);
+  document.cookie = `mr_ref=${encodeURIComponent(refParam)}; path=/; max-age=2592000; SameSite=Lax`;
+}
 
 async function loadMe(){
   try{
@@ -503,9 +506,36 @@ async function verifyPayment(sid){
   }catch(e){ showError("未查到付款结果，如已扣款额度稍后会自动到账"); }
 }
 
+/* 手机 redirect 登录会整页跳转，照片和已选风格存 sessionStorage，跳回来恢复现场 */
+function restoreSession(){
+  try{
+    const photo = sessionStorage.getItem("mr_photo");
+    if(!photo) return;
+    srcDataUrl = photo;
+    const selId = sessionStorage.getItem("mr_sel");
+    selected = selId ? (TEMPLATES.find(t => t.id === selId) || null) : null;
+    if(selected) currentCat = selected.cat;
+    $("previewImg").src = srcDataUrl;
+    $("uploadFrame").style.display = "none";
+    show("stepPick");
+    renderTabs(); renderGrid();
+    if(selected){
+      const btn = $("generateBtn");
+      btn.disabled = false;
+      btn.textContent = `生成「${selected.name}」 🐾`;
+    }
+  }catch(e){ /* sessionStorage 不可用就算了 */ }
+}
+
 (async () => {
+  restoreSession();
+  const params = new URLSearchParams(location.search);
+  if(params.get("login_error")){
+    history.replaceState(null, "", location.pathname);
+    showError("登录没成功，请再试一次");
+  }
   await loadMe();
-  const sid = new URLSearchParams(location.search).get("session_id");
+  const sid = params.get("session_id");
   if(sid && auth.configured) await verifyPayment(sid);
 })();
 
@@ -523,7 +553,15 @@ function initGsi(clientId, tries = 0){
     if(tries < 50) setTimeout(() => initGsi(clientId, tries + 1), 200);
     return;
   }
-  google.accounts.id.initialize({ client_id: clientId, callback: onGoogleCredential });
+  // 手机浏览器 popup 容易丢 opener 跳不回来，改走 redirect：Google 登录后
+  // 直接 form POST 到 /api/auth，后端种 cookie 再 303 跳回首页
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  google.accounts.id.initialize({
+    client_id: clientId,
+    callback: onGoogleCredential,
+    ux_mode: isMobile ? "redirect" : "popup",
+    login_uri: location.origin + "/api/auth",
+  });
   google.accounts.id.renderButton($("gsiBtn"), { type:"standard", shape:"pill", size:"medium", text:"signin", locale:"zh_CN" });
 }
 
@@ -642,6 +680,7 @@ function handleFile(file){
       c.width = Math.round(img.width*scale); c.height = Math.round(img.height*scale);
       c.getContext("2d").drawImage(img,0,0,c.width,c.height);
       srcDataUrl = c.toDataURL("image/jpeg",.92);
+      try{ sessionStorage.setItem("mr_photo", srcDataUrl); }catch(err){}
       track("upload");
       $("previewImg").src = srcDataUrl;
       $("uploadFrame").style.display = "none";
@@ -673,6 +712,7 @@ function renderGrid(){
   ).join("");
   $("grid").querySelectorAll(".tcard").forEach(card => card.onclick = () => {
     selected = TEMPLATES.find(t=>t.id===card.dataset.id);
+    try{ sessionStorage.setItem("mr_sel", selected.id); }catch(err){}
     renderGrid();
     const btn = $("generateBtn");
     btn.disabled = false;
@@ -826,6 +866,7 @@ $("reupload").onclick = resetAll;
 
 function resetAll(){
   srcDataUrl = null; selected = null;
+  try{ sessionStorage.removeItem("mr_photo"); sessionStorage.removeItem("mr_sel"); }catch(err){}
   hide("stepPick"); hide("result"); hide("loading"); hideError();
   $("uploadFrame").style.display = "";
   fileInput.value = "";

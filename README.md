@@ -26,9 +26,15 @@
 `UPSTASH_REDIS_REST_URL` 和 `UPSTASH_REDIS_REST_TOKEN` 会自动注入（兼容旧版 `KV_REST_API_*`）。
 
 **2. Google 登录**
-到 https://console.cloud.google.com/apis/credentials 创建 OAuth client ID（类型选 Web application），
-Authorized JavaScript origins 填你的正式域名（如 `https://maorong.vercel.app`，本地调试再加 `http://localhost:3000`）。
+到 https://console.cloud.google.com/apis/credentials 创建 OAuth client ID（类型选 Web application）：
+- **Authorized JavaScript origins** 填你的正式域名（如 `https://maorong.vercel.app`，本地调试再加 `http://localhost:3000`）
+- **Authorized redirect URIs** 填 `https://你的域名/api/auth` ——**必填**，手机端登录走
+  redirect 模式（popup 在手机浏览器上会跳不回来），Google 只允许跳到这里登记过的地址
+
 把 client ID 填进环境变量 `GOOGLE_CLIENT_ID`。
+
+**本地回归测试**：改完代码跑 `node tests/run.mjs`，不需要任何真实 key（Redis/Google/
+Gemini/Stripe 全部 mock），39 项断言覆盖登录、额度、邀请、支付、看板的完整链路。
 
 **3. 会话密钥**
 `openssl rand -hex 32` 生成一个随机串，填进 `SESSION_SECRET`。
