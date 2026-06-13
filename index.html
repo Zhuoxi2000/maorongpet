@@ -762,7 +762,7 @@ $("generateBtn").onclick = async () => {
   $("resultImg").src = resultUrl;
   $("captionStyle").textContent = selected.name + "的它";
   $("captionDate").textContent = new Date().toLocaleDateString("zh-CN");
-  $("demoBadge").hidden = !isDemo;
+  const badge = $("demoBadge"); if(badge) badge.hidden = !isDemo; // 元素被注释掉时判空防崩，避免卡住 loading
   $("wxGuide").hidden = true; // 新结果出来时收起上一次的微信分享引导
   hide("loading"); show("result");
   prepShareFile(resultUrl); // 提前把结果图转成 File，点"保存"时才能同步唤起系统分享（iOS 存相册）
