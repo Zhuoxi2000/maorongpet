@@ -14,7 +14,15 @@
 - **分享链接自动带邀请码**：登录用户的所有分享出口 URL 均为 `/?ref=邀请码`，转发即裂变。
 - **两处修复**：① 后端已配置时生成失败不再静默降级为本地滤镜假图，改为明确报错+重试；② 未登录时结果页不再出现空邀请卡（`.invite[hidden]` 被 `display:flex` 覆盖的问题，与 d6c425c 修的 modal 同类）。
 - **prompt 合规清理**：移除 Ghibli / Pixar / Warhol / LinkedIn 等品牌词，改描述性写法。
-- ⚠️ **模型死线**：Gemini 2.5 Flash Image 于 **2026-10-02 停服**，9 月中需切到 `gemini-3.1-flash-image`（$0.067/张）并同步调整大包定价，详见 GLOBAL_PLAN.md 第一节。
+- ⚠️ **模型死线**：Gemini 2.5 Flash Image 于 **2026-10-02 停服**。已支持环境变量 `GEMINI_MODEL` 热切换（默认 `gemini-2.5-flash-image`），**9 月中在 Vercel 设 `GEMINI_MODEL=gemini-3.1-flash-image` 重新部署即完成迁移**（$0.067/张，记得同步调大包定价，见 GLOBAL_PLAN.md 第一节）。
+
+**launch pack（第二批，均已实现+测试，随部署即生效）：**
+
+- **万圣节装扮包 ×8**（按 NRF 全美宠物装扮排行：南瓜/热狗/蜜蜂/幽灵/超人/魔女/吸血鬼/骷髅），模板带 `only:(lg,m)=> m===9||m===10` 季节门控——**9 月 1 日自动上架、11 月 1 日自动下架，零运维**。上新只需往 TEMPLATES 加带 `only` 的条目。
+- **揭晓 GIF 导出**：结果页 "Reveal GIF ✨" 按钮，客户端零依赖 GIF89a 编码器（LZW + Floyd–Steinberg 抖动），输出"原图→成片"交叉溶解循环动图（~500KB，420px 宽，带品牌条），iMessage/微信/推特里自动播放，出图后后台预编码 ~1s。
+- **每月上新邮件订阅**：账号菜单里的开关，`PATCH /api/me { newsletter }` 存到用户 hash，看板 KPI 显示累计订阅数。**发信侧未接**——等有几百订阅后接 Resend（免费档 3000 封/月）+ 导出脚本即可，届时每月发一封"本月新风格+节日提醒"。
+- **Privacy / Terms 英文页**（`privacy.html` / `terms.html`），页脚已挂链接。**Google OAuth 正式验证需要在 consent screen 填这两个 URL**。页内联系邮箱为 support@fluffbooth.com——记得在域名商开邮件转发。
+- 回归测试扩到 **44 项**（新增订阅开关链路）。
 
 ## 一、本地预览（不接 AI，演示模式）
 

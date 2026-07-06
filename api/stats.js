@@ -44,11 +44,12 @@ export default async function handler(req, res) {
   }
 
   // 模板维度：累计生成数 / 下载数
-  const [tplGenFlat, tplDlFlat, totalUsers, totalRevenue] = await Promise.all([
+  const [tplGenFlat, tplDlFlat, totalUsers, totalRevenue, totalNewsletter] = await Promise.all([
     redis("HGETALL", "stat:tpl"),
     redis("HGETALL", "stat:tpldl"),
     redis("GET", "stat:total:users"),
     redis("GET", "stat:total:revenue"),
+    redis("GET", "stat:total:newsletter"),
   ]);
   const toMap = flat2 => {
     const m = {};
@@ -89,6 +90,7 @@ small{color:#8C7A6B}
 <div class="kpi">
   <div><b>${parseInt(totalUsers || "0", 10)}</b><small>累计注册用户</small></div>
   <div><b>$${(parseInt(totalRevenue || "0", 10) / 100).toFixed(2)}</b><small>累计收入</small></div>
+  <div><b>${parseInt(totalNewsletter || "0", 10)}</b><small>邮件订阅</small></div>
 </div>
 <h2>每日漏斗（近 ${DAYS} 天，UTC 日切）</h2>
 <table><tr><th>日期</th><th>访问</th><th>上传</th><th>生成</th><th>下载</th>

@@ -311,6 +311,7 @@ footer .promises span::before{content:"🐾 ";font-size:11px}
       <div class="menu-head"><span id="menuName"></span><br><small id="menuEmail"></small></div>
       <button id="menuInvite">🐾 Copy invite link (+3 each)</button>
       <button id="menuBuy" hidden>🍖 Buy credits</button>
+      <button id="menuNews">📮 Monthly style drops: OFF</button>
       <button id="menuLogout">Sign out</button>
     </div>
   </div>
@@ -364,6 +365,7 @@ footer .promises span::before{content:"🐾 ";font-size:11px}
       <button class="btn btn-share" id="shareBtn">Share the glow-up 🐾</button>
       <button class="btn btn-primary" id="downloadBtn">Save photo</button>
       <button class="btn btn-ghost" id="revealBtn">Before &amp; after 🎬</button>
+      <button class="btn btn-ghost" id="gifBtn">Reveal GIF ✨</button>
       <button class="btn btn-ghost" id="retryStyle">Try another style</button>
       <button class="btn btn-ghost" id="newPhoto">New photo</button>
     </div>
@@ -391,6 +393,7 @@ footer .promises span::before{content:"🐾 ";font-size:11px}
 <footer>
   <div class="promises" id="promises"></div>
   <p id="footTag">FluffBooth · The other side of your best friend</p>
+  <p id="legalLinks" style="margin-top:6px"><a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a></p>
 </footer>
 
 <script>
@@ -441,6 +444,8 @@ en:{
   save:"Save photo",
   share:"Share the glow-up 🐾",
   reveal:"Before & after 🎬",
+  gif:"Reveal GIF ✨",
+  gifCooking:"Rendering… 🎞️",
   retry:"Try another style",
   newPhoto:"New photo",
   payTitle:"Refill the treat jar 🍖",
@@ -458,6 +463,7 @@ en:{
   avatarAlt:"Avatar",
   menuInvite:n=>`🐾 Copy invite link (+${n} each)`,
   menuBuy:"🍖 Buy credits",
+  menuNews:on=>`📮 Monthly style drops: ${on ? "ON" : "OFF"}`,
   menuLogout:"Sign out",
   defaultUser:"Fluff friend",
   inviteText:n=>`Love it? Send it to a friend — you each get <b>${n} bonus portraits</b> 🐾`,
@@ -471,6 +477,7 @@ en:{
   errQuotaAnon:"That was today's free try! Sign in with Google for 3 free portraits every day.",
   errQuotaUser:n=>`Today's freebies are all used up — invite a friend (you both get +${n}) or grab a pack 🍖`,
   errGenFail:"The studio hiccuped — your credit is safe, give it another try",
+  errSaveFail:"Couldn't save that — try again in a second",
   errLoginFailed:"Sign-in didn't work — please try again",
   errLoginToBuy:"Sign in first so your credits stay on your account",
   errPayUnavailable:"Payments are napping — please try again in a bit",
@@ -481,6 +488,9 @@ en:{
   shareManual:"Copy this link to share: ",
   fileBase:n=>`FluffBooth_${n}_`,
   revealName:"BeforeAfter",
+  gifName:"RevealGIF",
+  privacyLink:"Privacy",
+  termsLink:"Terms",
   promises:[
     "Photos are processed, then gone — never stored, never used for training",
     "Free to try, no sign-up · 3 free daily with an account",
@@ -516,6 +526,8 @@ zh:{
   save:"保存照片",
   share:"分享给朋友 🐾",
   reveal:"保存前后对比 🎬",
+  gif:"动图揭晓 ✨",
+  gifCooking:"渲染中… 🎞️",
   retry:"换个风格",
   newPhoto:"换张照片",
   payTitle:"给毛孩子加餐 🍖",
@@ -533,6 +545,7 @@ zh:{
   avatarAlt:"头像",
   menuInvite:n=>`🐾 复制邀请链接（各得 ${n} 张）`,
   menuBuy:"🍖 购买额度",
+  menuNews:on=>`📮 每月上新提醒：${on ? "已开启" : "未开启"}`,
   menuLogout:"退出登录",
   defaultUser:"毛茸用户",
   inviteText:n=>`喜欢的话，分享给朋友——你和 TA 各得 <b>${n} 张</b>奖励额度 🐾`,
@@ -546,6 +559,7 @@ zh:{
   errQuotaAnon:"今天的免费体验用完啦～ 登录后每天免费 3 张，还能邀请好友拿奖励",
   errQuotaUser:n=>`今天的免费额度用完啦～ 邀请好友注册，你和 TA 各得 ${n} 张奖励`,
   errGenFail:"生成服务开小差了——放心额度没扣，再试一次吧",
+  errSaveFail:"没保存上，稍后再试一次",
   errLoginFailed:"登录没成功，请再试一次",
   errLoginToBuy:"先登录，购买的额度才能记在你的账号上～",
   errPayUnavailable:"支付服务暂时不可用，请稍后再试",
@@ -556,6 +570,9 @@ zh:{
   shareManual:"可手动复制网址分享：",
   fileBase:n=>`毛茸相馆_${n}_`,
   revealName:"前后对比",
+  gifName:"动图揭晓",
+  privacyLink:"隐私政策",
+  termsLink:"用户协议",
   promises:[
     "照片无备份上传自动删除",
     "免注册先体验 · 登录每天免费 3 张",
@@ -652,7 +669,40 @@ const TEMPLATES = [
   {cat:"dress", id:"headshot", emo:"💼", name:{en:"Pro Headshot",zh:"职业形象照"}, desc:{en:"Open to work (mostly napping)",zh:"求职头像就它了"},
    prompt:"Edit this pet photo: turn it into a professional corporate business headshot, the pet wearing a smart business suit and tie, clean neutral studio background, soft professional lighting, keep the pet's face and fur completely unchanged and photorealistic.",
    demo:{filter:"saturate(.85) contrast(1.12) brightness(1.06)", sticker:"💼", pos:"chest"}},
-  // 节日限定
+  // 节日限定 —— 万圣节包(9–10 月自动上架,11 月自动隐藏;装扮按 NRF 全美宠物装扮排行)
+  {cat:"holiday", id:"pumpkin", emo:"🎃", name:{en:"The Pumpkin",zh:"南瓜精"}, desc:{en:"America's #1 pet costume",zh:"全美第一宠物装扮"}, hot:true,
+   only:(lg,m)=> m===9 || m===10,
+   prompt:"Edit this pet photo: dress the pet in a plush orange pumpkin costume with a leafy green stem hat, cozy autumn porch with pumpkins and fallen leaves in the background, warm golden lighting, keep the pet's face and fur completely unchanged and photorealistic.",
+   demo:{filter:"saturate(1.35) sepia(.2) contrast(1.08)", vignette:.25, sticker:"🎃", pos:"head"}},
+  {cat:"holiday", id:"hotdog", emo:"🌭", name:{en:"Hot Dog",zh:"热狗装"}, desc:{en:"It's not a phase, mom",zh:"本汪就是本体"}, hot:true,
+   only:(lg,m)=> m===9 || m===10,
+   prompt:"Edit this pet photo: dress the pet in a plush hot-dog bun costume with a mustard squiggle on top, fun backyard party background, bright cheerful lighting, keep the pet's face and fur completely unchanged and photorealistic.",
+   demo:{filter:"saturate(1.3) brightness(1.06)", sticker:"🌭", pos:"chest"}},
+  {cat:"holiday", id:"bee", emo:"🐝", name:{en:"Bumblebee",zh:"小蜜蜂"}, desc:{en:"Bee-have? Never.",zh:"嗡嗡嗡的甜心"},
+   only:(lg,m)=> m===9 || m===10,
+   prompt:"Edit this pet photo: dress the pet in a cute bumblebee costume with black and yellow stripes and little wings, flower garden background, soft sunny lighting, keep the pet's face and fur completely unchanged and photorealistic.",
+   demo:{filter:"saturate(1.4) brightness(1.08)", sticker:"🐝", pos:"head"}},
+  {cat:"holiday", id:"ghost", emo:"👻", name:{en:"Lil' Ghost",zh:"小幽灵"}, desc:{en:"Boo. (adorably)",zh:"最不吓人的鬼"},
+   only:(lg,m)=> m===9 || m===10,
+   prompt:"Edit this pet photo: dress the pet in a classic white sheet ghost costume with the face fully visible through a rounded opening, moody twilight porch with jack-o-lanterns in the background, keep the pet's face and fur completely unchanged and photorealistic.",
+   demo:{filter:"grayscale(.3) brightness(1.1) contrast(1.05)", vignette:.35, sticker:"👻", pos:"head"}},
+  {cat:"holiday", id:"hero", emo:"🦸", name:{en:"Superpet",zh:"超级英雄"}, desc:{en:"Cape > gravity",zh:"披风一穿拯救世界"},
+   only:(lg,m)=> m===9 || m===10,
+   prompt:"Edit this pet photo: dress the pet in a red superhero cape and a small eye mask, dramatic city skyline at dusk in the background, heroic low-angle lighting, keep the pet's face and fur completely unchanged and photorealistic.",
+   demo:{filter:"contrast(1.15) saturate(1.3)", vignette:.3, sticker:"🦸", pos:"chest"}},
+  {cat:"holiday", id:"witch", emo:"🧙", name:{en:"The Witch",zh:"小魔女"}, desc:{en:"Double, double, treats and trouble",zh:"魔法扫帚已就位"},
+   only:(lg,m)=> m===9 || m===10,
+   prompt:"Edit this pet photo: add a black pointed witch hat on the pet and a tiny broomstick beside it, misty moonlit forest background with floating sparkles, keep the pet's face and fur completely unchanged and photorealistic.",
+   demo:{filter:"saturate(1.1) contrast(1.15) brightness(.95)", vignette:.4, sticker:"🧙", pos:"head"}},
+  {cat:"holiday", id:"vampire", emo:"🧛", name:{en:"Count Fluffula",zh:"吸血鬼伯爵"}, desc:{en:"Only drinks from the good bowl",zh:"只吸罐罐不吸血"},
+   only:(lg,m)=> m===9 || m===10,
+   prompt:"Edit this pet photo: dress the pet in a black vampire cape with a high red-lined collar, gothic castle interior with candles in the background, dramatic moonlight, keep the pet's face and fur completely unchanged and photorealistic.",
+   demo:{filter:"grayscale(.2) contrast(1.2) brightness(.92)", vignette:.45, sticker:"🧛", pos:"chest"}},
+  {cat:"holiday", id:"bones", emo:"💀", name:{en:"Spooky Bones",zh:"骷髅装"}, desc:{en:"Rattling cute",zh:"吓人程度：0.5"},
+   only:(lg,m)=> m===9 || m===10,
+   prompt:"Edit this pet photo: dress the pet in a cute skeleton costume with white bone print on black fabric, playful Halloween party background with string lights, keep the pet's face and fur completely unchanged and photorealistic.",
+   demo:{filter:"grayscale(.4) contrast(1.25)", vignette:.35, sticker:"💀", pos:"chest"}},
+  // 节日限定 —— 常驻
   {cat:"holiday", id:"bday", emo:"🎂", name:{en:"Birthday Star",zh:"生日派对"}, desc:{en:"It's their party",zh:"给寿星拍张纪念照"}, hot:true,
    prompt:"Edit this pet photo: add a colorful birthday party hat on the pet's head, confetti and balloons in the background, festive warm lighting, keep the pet's face and fur completely unchanged and photorealistic.",
    demo:{filter:"saturate(1.3) brightness(1.08)", sticker:"🥳", pos:"head"}},
@@ -677,6 +727,7 @@ let selected   = null;      // 选中的模板
 let quota      = 3;         // 仅演示模式（无后端）时的本地额度；线上额度由后端管
 let shareFile  = null;      // 结果图预先转好的 File，供移动端系统分享/存相册用
 let revealFile = null;      // 前后对比卡预先转好的 File（share 必须在手势内同步调用）
+let gifFile    = null;      // 揭晓动图（GIF）预先编码好的 File
 let currentCat = "twist";
 
 const $ = id => document.getElementById(id);
@@ -705,6 +756,7 @@ function applyLang(){
   $("shareBtn").textContent = s.share;
   $("downloadBtn").textContent = s.save;
   $("revealBtn").textContent = s.reveal;
+  $("gifBtn").textContent = s.gif;
   $("retryStyle").textContent = s.retry;
   $("newPhoto").textContent = s.newPhoto;
   $("payTitle").textContent = s.payTitle;
@@ -718,6 +770,7 @@ function applyLang(){
   $("wxGuide").innerHTML = s.wxGuide;
   $("promises").innerHTML = s.promises.map(p => `<span>${p}</span>`).join("");
   $("footTag").textContent = s.footTag;
+  $("legalLinks").innerHTML = `<a href="/privacy.html">${s.privacyLink}</a> · <a href="/terms.html">${s.termsLink}</a>`;
   $("langBtn").textContent = s.langBtn;
   if (lang === "zh"){ // 中文字体按需加载，英文首屏不背这个体积
     const l = document.createElement("link");
@@ -864,6 +917,7 @@ function renderAccount(){
   $("inviteCard").hidden = !auth.loggedIn;
   $("menuBuy").hidden = !auth.payEnabled;
   $("menuInvite").textContent = S().menuInvite(auth.refBonus);
+  $("menuNews").textContent = S().menuNews(!!(auth.user && auth.user.newsletter));
   $("inviteText").innerHTML = S().inviteText(auth.refBonus);
   if(auth.loggedIn){
     $("avatarImg").src = auth.user.picture || "";
@@ -889,6 +943,22 @@ $("userMenu").addEventListener("click", e => e.stopPropagation());
 $("menuLogout").onclick = async () => {
   await fetch("/api/auth", { method:"DELETE" }).catch(()=>{});
   location.reload();
+};
+
+/* 每月上新邮件的订阅开关（挂在账号菜单里，PATCH /api/me） */
+$("menuNews").onclick = async () => {
+  if(!auth.loggedIn || !auth.user) return;
+  const want = !auth.user.newsletter;
+  try{
+    const r = await fetch("/api/me", {
+      method:"PATCH", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ newsletter: want })
+    });
+    const d = await r.json();
+    if(!r.ok) throw 0;
+    auth.user.newsletter = !!d.newsletter;
+    $("menuNews").textContent = S().menuNews(auth.user.newsletter);
+  }catch(e){ showError(S().errSaveFail); }
 };
 
 /* 邀请链接（分享出口统一带邀请码，见 shareUrl） */
@@ -1075,6 +1145,7 @@ $("generateBtn").onclick = async () => {
   stopLoadingLines(); hide("loading"); show("result");
   prepShareFile(resultUrl);  // 提前把结果图转成 File，点"保存"时才能同步唤起系统分享（iOS 存相册）
   prepRevealFile();          // 前后对比卡同理，提前合成好
+  prepGifFile();             // 揭晓 GIF 编码较慢（~1s），后台先算好
 };
 
 /* 免费图角标水印：右下角半透明胶囊 "🐾 fluffbooth.com"（canvas 合成） */
@@ -1183,6 +1254,142 @@ async function prepRevealFile(){
   }catch(e){ revealFile = null; }
 }
 
+/* =========================================================
+   揭晓 GIF：原图 → 成片 交叉溶解 + 品牌条，循环播放。
+   零依赖 GIF89a 编码器：6×7×6 全局调色板 + Floyd–Steinberg
+   抖动 + LZW。GIF 在 iMessage/微信/推特里都能自动播放。
+========================================================= */
+function drawCover(ctx, img, x, y, w, h){
+  const s = Math.max(w / img.width, h / img.height);
+  const dw = img.width * s, dh = img.height * s;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+  ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+  ctx.restore();
+}
+
+// LZW（GIF 变体）：动态码长，字典满 4096 时发 CLEAR 重置
+function lzwEncode(minCodeSize, indices){
+  const CLEAR = 1 << minCodeSize, EOI = CLEAR + 1;
+  let dict, next, codeSize;
+  const bytes = [];
+  let acc = 0, nbits = 0;
+  const emit = code => {
+    acc |= code << nbits; nbits += codeSize;
+    while (nbits >= 8){ bytes.push(acc & 255); acc >>= 8; nbits -= 8; }
+  };
+  const reset = () => { dict = new Map(); next = EOI + 1; codeSize = minCodeSize + 1; };
+  reset(); emit(CLEAR);
+  let prefix = indices[0];
+  for (let i = 1; i < indices.length; i++){
+    const c = indices[i], key = (prefix << 8) | c;
+    const hit = dict.get(key);
+    if (hit !== undefined){ prefix = hit; continue; }
+    emit(prefix);
+    if (next === 4096){ emit(CLEAR); reset(); }
+    else { dict.set(key, next++); if (next === (1 << codeSize) && codeSize < 12) codeSize++; }
+    prefix = c;
+  }
+  emit(prefix); emit(EOI);
+  if (nbits > 0) bytes.push(acc & 255);
+  return bytes;
+}
+
+// 一帧像素 → 调色板索引（6×7×6 色立方 + Floyd–Steinberg 误差扩散）
+function quantizeFrame(imgData, W, H){
+  const d = imgData.data, n = W * H;
+  const rF = new Float32Array(n), gF = new Float32Array(n), bF = new Float32Array(n);
+  for (let i = 0; i < n; i++){ rF[i] = d[i*4]; gF[i] = d[i*4+1]; bF[i] = d[i*4+2]; }
+  const idx = new Uint8Array(n);
+  const cl = v => v < 0 ? 0 : v > 255 ? 255 : v;
+  for (let y = 0; y < H; y++){
+    for (let x = 0; x < W; x++){
+      const i = y * W + x;
+      const r = cl(rF[i]), g = cl(gF[i]), b = cl(bF[i]);
+      const ri = Math.round(r / 51), gi = Math.round(g / 42.5), bi = Math.round(b / 51);
+      idx[i] = ri * 42 + gi * 6 + bi;
+      const er = r - ri * 51, eg = g - gi * 42.5, eb = b - bi * 51;
+      if (x + 1 < W){ rF[i+1] += er * 7/16; gF[i+1] += eg * 7/16; bF[i+1] += eb * 7/16; }
+      if (y + 1 < H){
+        if (x > 0){ rF[i+W-1] += er * 3/16; gF[i+W-1] += eg * 3/16; bF[i+W-1] += eb * 3/16; }
+        rF[i+W] += er * 5/16; gF[i+W] += eg * 5/16; bF[i+W] += eb * 5/16;
+        if (x + 1 < W){ rF[i+W+1] += er / 16; gF[i+W+1] += eg / 16; bF[i+W+1] += eb / 16; }
+      }
+    }
+  }
+  return idx;
+}
+
+function renderGif(a, b){
+  const W = 420;
+  const H = Math.max(320, Math.min(520, Math.round(W * b.height / b.width)));
+  const BAR = 36, HT = H + BAR;
+  const c = document.createElement("canvas");
+  c.width = W; c.height = HT;
+  const ctx = c.getContext("2d", { willReadFrequently: true });
+  // 6×7×6 = 252 色全局调色板（+4 个黑色占位）
+  const R6 = [0,51,102,153,204,255], G7 = [0,43,85,128,170,213,255];
+  const out = [];
+  const pushStr = s => { for (let i = 0; i < s.length; i++) out.push(s.charCodeAt(i)); };
+  const push16 = v => { out.push(v & 255, (v >> 8) & 255); };
+  pushStr("GIF89a"); push16(W); push16(HT);
+  out.push(0xF7, 0, 0); // GCT 256 色
+  for (let r = 0; r < 6; r++) for (let g = 0; g < 7; g++) for (let bl = 0; bl < 6; bl++) out.push(R6[r], G7[g], R6[bl]);
+  for (let i = 252; i < 256; i++) out.push(0, 0, 0);
+  out.push(0x21, 0xFF, 0x0B); pushStr("NETSCAPE2.0"); out.push(3, 1, 0, 0, 0); // 无限循环
+  // 帧序列：停原图 → 8 帧溶解 → 停成片（单位：厘秒）
+  const steps = [[0,90],[.12,6],[.25,6],[.38,6],[.5,6],[.62,6],[.75,6],[.88,6],[1,6],[1,140]];
+  for (const [alpha, delay] of steps){
+    ctx.fillStyle = "#FBF4EA"; ctx.fillRect(0, 0, W, HT);
+    drawCover(ctx, a, 0, 0, W, H);
+    if (alpha > 0){ ctx.globalAlpha = alpha; drawCover(ctx, b, 0, 0, W, H); ctx.globalAlpha = 1; }
+    ctx.fillStyle = "#FBF4EA"; ctx.fillRect(0, H, W, BAR);
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#3E2F25"; ctx.font = "700 15px Nunito, -apple-system, sans-serif";
+    ctx.fillText("🐾 FluffBooth", 12, H + BAR/2 + 1);
+    ctx.fillStyle = "#8C7A6B"; ctx.font = "600 13px Nunito, -apple-system, sans-serif";
+    const dm = "fluffbooth.com";
+    ctx.fillText(dm, W - 12 - ctx.measureText(dm).width, H + BAR/2 + 1);
+    const idx = quantizeFrame(ctx.getImageData(0, 0, W, HT), W, HT);
+    out.push(0x21, 0xF9, 4, 4); push16(Math.round(delay)); out.push(0, 0); // GCE：disposal=1
+    out.push(0x2C); push16(0); push16(0); push16(W); push16(HT); out.push(0);
+    out.push(8); // LZW 最小码长
+    const data = lzwEncode(8, idx);
+    for (let pos = 0; pos < data.length; pos += 255){
+      const nn = Math.min(255, data.length - pos);
+      out.push(nn);
+      for (let k = 0; k < nn; k++) out.push(data[pos + k]);
+    }
+    out.push(0);
+  }
+  out.push(0x3B);
+  return new Blob([new Uint8Array(out)], { type: "image/gif" });
+}
+
+function buildRevealGif(){
+  return new Promise(resolve => {
+    if (!srcDataUrl) return resolve(null);
+    const a = new Image(), b = new Image();
+    let n = 0;
+    const go = () => {
+      if (++n < 2) return;
+      try { resolve(renderGif(a, b)); }
+      catch(e){ console.error("gif encode failed:", e); resolve(null); }
+    };
+    a.onload = go; b.onload = go;
+    a.onerror = () => resolve(null); b.onerror = () => resolve(null);
+    a.src = srcDataUrl; b.src = $("resultImg").src;
+  });
+}
+
+async function prepGifFile(){
+  gifFile = null;
+  try{
+    const blob = await buildRevealGif();
+    if (blob) gifFile = new File([blob], `${S().fileBase(S().gifName)}${Date.now()}.gif`, { type: "image/gif" });
+  }catch(e){ gifFile = null; }
+}
+
 /* ---------- 结果操作 ---------- */
 // 结果图转 File（data URL → Blob → File），失败则置空、点保存时走下载兜底
 async function prepShareFile(url){
@@ -1224,6 +1431,26 @@ $("revealBtn").onclick = async () => {
   a.click();
 };
 
+$("gifBtn").onclick = async () => {
+  track("download", selected ? selected.id : "");
+  if(gifFile){ deliverFile(gifFile, URL.createObjectURL(gifFile), gifFile.name); return; }
+  // 预编码还没好（慢设备/刚出图就点）：现场编码，走下载兜底
+  const btn = $("gifBtn");
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = S().gifCooking;
+  try{
+    const blob = await buildRevealGif();
+    if(!blob){ showError(S().errSaveFail); return; }
+    gifFile = new File([blob], `${S().fileBase(S().gifName)}${Date.now()}.gif`, { type: "image/gif" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(gifFile);
+    a.download = gifFile.name;
+    a.click();
+  } finally {
+    btn.disabled = false; btn.textContent = label;
+  }
+};
+
 // 是否在微信内置浏览器里（这里 navigator.share 不可用，只能引导手动分享）
 const inWeChat = /micromessenger/i.test(navigator.userAgent);
 
@@ -1261,7 +1488,7 @@ $("newPhoto").onclick = resetAll;
 $("reupload").onclick = resetAll;
 
 function resetAll(){
-  srcDataUrl = null; selected = null; shareFile = null; revealFile = null;
+  srcDataUrl = null; selected = null; shareFile = null; revealFile = null; gifFile = null;
   try{ sessionStorage.removeItem("mr_photo"); sessionStorage.removeItem("mr_sel"); }catch(err){}
   hide("stepPick"); hide("result"); hide("loading"); hideError();
   stopLoadingLines();

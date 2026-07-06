@@ -62,10 +62,13 @@ export default async function handler(req, res) {
     }
   }
 
-  // ---- 调用 Gemini 2.5 Flash Image（图生图，宠物身份保持效果最佳）----
+  // ---- 调用 Gemini 图像模型（图生图，宠物身份保持效果最佳）----
+  // 模型可用环境变量 GEMINI_MODEL 热切换：2.5 Flash Image 于 2026-10-02 停服，
+  // 届时在 Vercel 设 GEMINI_MODEL=gemini-3.1-flash-image 并重新部署即可（同步调大包定价，见 GLOBAL_PLAN.md）
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-image";
   try {
     const r = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent",
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
       {
         method: "POST",
         headers: {

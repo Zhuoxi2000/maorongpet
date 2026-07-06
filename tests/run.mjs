@@ -295,5 +295,29 @@ console.log("\n[10] 埋点与看板");
   check("看板统计到生成数", /访问/.test(String(dash.body)));
 }
 
+console.log("\n[11] 邮件订阅开关（PATCH /api/me）");
+{
+  const on = makeRes();
+  await me(makeReq({ method: "PATCH", body: { newsletter: true }, headers: { cookie: aliceCookie } }), on);
+  check("登录用户可开启订阅", on.statusCode === 200 && on.body.newsletter === true);
+
+  const m = makeRes();
+  await me(makeReq({ headers: { cookie: aliceCookie } }), m);
+  check("me 返回订阅状态", m.body.user.newsletter === true);
+
+  await me(makeReq({ method: "PATCH", body: { newsletter: true }, headers: { cookie: aliceCookie } }), makeRes()); // 重复开启应幂等
+  const dash = makeRes();
+  await stats(makeReq({ query: { key: "test-admin" } }), dash);
+  check("看板订阅计数=1（重复开启不重复计数）", /邮件订阅/.test(String(dash.body)) && />1<\/b><small>邮件订阅/.test(String(dash.body)));
+
+  const off = makeRes();
+  await me(makeReq({ method: "PATCH", body: { newsletter: false }, headers: { cookie: aliceCookie } }), off);
+  check("可关闭订阅", off.statusCode === 200 && off.body.newsletter === false);
+
+  const noAuth = makeRes();
+  await me(makeReq({ method: "PATCH", body: { newsletter: true } }), noAuth);
+  check("未登录 PATCH 401", noAuth.statusCode === 401);
+}
+
 console.log(`\n========== 通过 ${pass} / ${pass + fail} ==========`);
 process.exit(fail ? 1 : 0);
