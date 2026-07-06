@@ -33,6 +33,16 @@ function redisExec([cmd, ...a]) {
       const h = hashes.get(a[0]);
       return h ? [...h.entries()].flat() : [];
     }
+    case "HGET": {
+      const h = hashes.get(a[0]);
+      return h ? (h.get(a[1]) ?? null) : null;
+    }
+    case "SCAN": {
+      // 简化 mock：一次性返回全部匹配（cursor 恒为 "0"）
+      const pattern = a[a.indexOf("MATCH") + 1];
+      const rx = new RegExp("^" + pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$");
+      return ["0", [...hashes.keys()].filter(k => rx.test(k))];
+    }
     case "HINCRBY": {
       const h = hashes.get(a[0]) || new Map();
       const v = parseInt(h.get(a[1]) || "0", 10) + parseInt(a[2], 10);
@@ -125,10 +135,10 @@ function check(name, cond, extra = "") {
   else { fail++; console.error(`  ✗ ${name} ${extra}`); }
 }
 
-const [auth, me, generate, pay, webhook, track, stats] = await Promise.all([
+const [auth, me, generate, pay, webhook, track, stats, grant] = await Promise.all([
   import("../api/auth.js"), import("../api/me.js"), import("../api/generate.js"),
   import("../api/pay.js"), import("../api/stripe-webhook.js"),
-  import("../api/track.js"), import("../api/stats.js"),
+  import("../api/track.js"), import("../api/stats.js"), import("../api/grant.js"),
 ]).then(ms => ms.map(m => m.default));
 
 const IMG = "data:image/jpeg;base64,aGVsbG8=";
@@ -317,6 +327,26 @@ console.log("\n[11] 邮件订阅开关（PATCH /api/me）");
   const noAuth = makeRes();
   await me(makeReq({ method: "PATCH", body: { newsletter: true } }), noAuth);
   check("未登录 PATCH 401", noAuth.statusCode === 401);
+}
+
+console.log("\n[12] 管理员发额度（/api/grant）");
+{
+  const before = makeRes(); await me(makeReq({ headers: { cookie: aliceCookie } }), before);
+  const ok = makeRes();
+  await grant(makeReq({ query: { key: "test-admin", email: "ALICE@x.com", credits: "20" } }), ok);
+  check("按邮箱发放 +20（大小写不敏感）", ok.statusCode === 200 && ok.body.granted === 20);
+  const after = makeRes(); await me(makeReq({ headers: { cookie: aliceCookie } }), after);
+  check("余额入账", after.body.user.credits === before.body.user.credits + 20 && ok.body.balance === after.body.user.credits);
+
+  const badKey = makeRes();
+  await grant(makeReq({ query: { key: "wrong", email: "alice@x.com", credits: "20" } }), badKey);
+  check("错误 key → 401", badKey.statusCode === 401);
+  const noUser = makeRes();
+  await grant(makeReq({ query: { key: "test-admin", email: "ghost@x.com", credits: "20" } }), noUser);
+  check("未注册邮箱 → 404", noUser.statusCode === 404);
+  const tooMuch = makeRes();
+  await grant(makeReq({ query: { key: "test-admin", email: "alice@x.com", credits: "99999" } }), tooMuch);
+  check("超限 → 400", tooMuch.statusCode === 400);
 }
 
 console.log(`\n========== 通过 ${pass} / ${pass + fail} ==========`);

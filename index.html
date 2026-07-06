@@ -600,9 +600,13 @@ const CATS = {
 
 const TEMPLATES = [
   // 反转梗（2026 已验证的传播型模板）
-  {cat:"twist", id:"human", emo:"🧑‍🎤", name:{en:"If They Were Human",zh:"拟人写真"}, desc:{en:"The 10-million-post trend",zh:"如果 TA 是个人，大概长这样"}, hot:true,
-   prompt:"Reimagine this pet as a human person in a studio portrait: hair color and texture matching the pet's fur, same expression, same personality and energy, the collar or accessories echoed in the clothing, photorealistic, unmistakably the same soul.",
-   demo:{filter:"contrast(1.06) saturate(1.05)", sticker:"🧑‍🎤", pos:"head"}},
+  {cat:"twist", id:"human", emo:"🧑‍🎤", name:{en:"Their Human Form",zh:"拟人动漫化"}, desc:{en:"The anime-protagonist version",zh:"如果 TA 是二次元主角"}, hot:true,
+   prompt:"Reimagine this pet as an anime-style human character illustration: hand-drawn Japanese animation aesthetic with clean cel shading, NOT photorealistic. Large expressive eyes, hair color and texture matching the pet's fur, an outfit that echoes the pet's collar and markings, same personality and energy, ears or small accessories hinting at the original animal, soft gradient studio background, unmistakably the same soul in anime form.",
+   demo:{filter:"saturate(1.6) contrast(1.15) brightness(1.06)", sticker:"🧑‍🎤", pos:"head"}},
+  {cat:"twist", id:"worldcup", emo:"⚽", name:{en:"Football Fever",zh:"世界杯巨星"}, desc:{en:"Stadium lights. Destiny. Zoomies.",zh:"世界杯气氛组，冲！"}, hot:true,
+   only:(lg,m)=> m===6 || m===7,
+   prompt:"Edit this pet photo: dress the pet in a soccer jersey with a captain's armband, one paw resting on a classic soccer ball, packed stadium under floodlights with confetti falling in the background, a golden trophy gleaming beside the pet, keep the pet's face and fur completely unchanged and photorealistic, no brand logos.",
+   demo:{filter:"saturate(1.4) contrast(1.15) brightness(1.05)", vignette:.3, sticker:"⚽", pos:"chest"}},
   {cat:"twist", id:"mugshot", emo:"🚨", name:{en:"The Mugshot",zh:"疑犯登记照"}, desc:{en:"Charged with: crimes against snacks",zh:"罪名：偷吃零食"}, hot:true,
    prompt:"Edit this pet photo into a playful police booking mugshot: the pet holding a blank booking placard, height chart lines in the background, harsh flash lighting, deadpan expression, keep the pet's face and fur completely unchanged and photorealistic.",
    demo:{filter:"grayscale(.35) contrast(1.25) brightness(1.05)", vignette:.25, sticker:"🚨", pos:"head"}},
@@ -1287,7 +1291,9 @@ function lzwEncode(minCodeSize, indices){
     if (hit !== undefined){ prefix = hit; continue; }
     emit(prefix);
     if (next === 4096){ emit(CLEAR); reset(); }
-    else { dict.set(key, next++); if (next === (1 << codeSize) && codeSize < 12) codeSize++; }
+    // 注意:码长加宽必须在字典指针越过 2^n(即 == 2^n + 1)时进行,与解码端严格同步;
+    // 早一个码加宽的话 Chrome 能容错,但 macOS 预览/iMessage 等严格解码器会解出白板
+    else { dict.set(key, next++); if (next === (1 << codeSize) + 1 && codeSize < 12) codeSize++; }
     prefix = c;
   }
   emit(prefix); emit(EOI);
