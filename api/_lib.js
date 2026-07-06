@@ -18,9 +18,9 @@ export const QUOTA = {
 
 /* ---------- 付费包（Stripe，单位美分；调价只改这里） ---------- */
 export const PACKS = {
-  small: { credits: 30,  amount: 499,  name: "小食包 · 30 张" },
-  mid:   { credits: 80,  amount: 999,  name: "加餐包 · 80 张", popular: true },
-  large: { credits: 200, amount: 1999, name: "豪华包 · 200 张" },
+  small: { credits: 30,  amount: 499,  name: "Snack Pack · 30 portraits" },
+  mid:   { credits: 80,  amount: 999,  name: "Feast Pack · 80 portraits", popular: true },
+  large: { credits: 200, amount: 1999, name: "Buffet Pack · 200 portraits" },
 };
 
 /* ---------- Redis（Upstash REST，无需 npm 依赖） ---------- */

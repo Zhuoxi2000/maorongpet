@@ -18,15 +18,15 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return res.status(503).json({ error: "API key 未配置" });
+  if (!apiKey) return res.status(503).json({ error: "API key not configured" });
 
   // ---- 校验输入 ----
   const { image, prompt, templateId } = req.body || {};
-  if (!image || !prompt) return res.status(400).json({ error: "缺少 image 或 prompt" });
+  if (!image || !prompt) return res.status(400).json({ error: "Missing image or prompt" });
   const match = image.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
-  if (!match) return res.status(400).json({ error: "图片格式不正确" });
+  if (!match) return res.status(400).json({ error: "Unsupported image format" });
   const [, mimeType, base64Data] = match;
-  if (base64Data.length > 8 * 1024 * 1024) return res.status(413).json({ error: "图片过大" });
+  if (base64Data.length > 8 * 1024 * 1024) return res.status(413).json({ error: "Image too large" });
 
   // ---- 额度检查（Redis 未配置时跳过，便于本地/初期测试） ----
   const ip = clientIp(req);
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
             useCredit = true;
           } else {
             return res.status(402).json({
-              error: `今天的免费额度用完啦～ 邀请好友注册，你和 TA 各得 ${QUOTA.REF_BONUS} 张奖励`,
+              error: `Today's free portraits are used up — invite a friend (you both get +${QUOTA.REF_BONUS}) or grab a pack`,
               code: "quota",
             });
           }
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
         const used = await usedToday("ip", ip);
         if (used >= QUOTA.ANON_DAILY) {
           return res.status(402).json({
-            error: `今天的免费体验用完啦～ 登录后每天免费 ${QUOTA.USER_DAILY} 张，还能邀请好友拿奖励`,
+            error: `That was today's free try — sign in for ${QUOTA.USER_DAILY} free portraits every day`,
             code: "quota_anon",
           });
         }
@@ -86,13 +86,13 @@ export default async function handler(req, res) {
     if (!r.ok) {
       const detail = await r.text();
       console.error("Gemini error:", r.status, detail.slice(0, 500));
-      return res.status(502).json({ error: "生成服务暂时不可用，请稍后再试" });
+      return res.status(502).json({ error: "The studio hiccuped — please try again in a moment" });
     }
 
     const data = await r.json();
     const parts = data?.candidates?.[0]?.content?.parts || [];
     const imgPart = parts.find(p => p.inlineData || p.inline_data);
-    if (!imgPart) return res.status(502).json({ error: "本次生成未返回图片，请换张照片或风格重试" });
+    if (!imgPart) return res.status(502).json({ error: "No image came back — try another photo or style" });
     const inline = imgPart.inlineData || imgPart.inline_data;
 
     // ---- 生成成功，记账 + 邀请奖励 ----
@@ -131,9 +131,10 @@ export default async function handler(req, res) {
     return res.status(200).json({
       image: `data:${inline.mimeType || inline.mime_type || "image/png"};base64,${inline.data}`,
       quota,
+      viaCredit: useCredit, // 前端据此决定是否加水印（付费 credit 出图无水印）
     });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "服务器开小差了，请重试" });
+    return res.status(500).json({ error: "Server error — please try again" });
   }
 }

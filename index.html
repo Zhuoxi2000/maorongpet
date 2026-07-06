@@ -1,11 +1,25 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en" data-lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>毛茸相馆 · 给宠物拍一张不一样的照片</title>
+<title>FluffBooth — Your pet, but legendary</title>
+<meta name="description" content="Turn one pet photo into a Renaissance portrait, a mugshot, or their main-character moment — in 30 seconds. Free to try, no sign-up, photos never stored.">
+<meta name="theme-color" content="#FBF4EA">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FluffBooth">
+<meta property="og:title" content="FluffBooth — Your pet, but legendary">
+<meta property="og:description" content="One photo in, one masterpiece out. Pick a style, get a share-ready pet portrait in 30 seconds. Free to try, no sign-up.">
+<meta property="og:url" content="https://fluffbooth.com/">
+<meta property="og:image" content="https://fluffbooth.com/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://fluffbooth.com/">
+<link rel="alternate" hreflang="en" href="https://fluffbooth.com/">
+<link rel="alternate" hreflang="zh" href="https://fluffbooth.com/?lang=zh">
+<link rel="alternate" hreflang="x-default" href="https://fluffbooth.com/">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
@@ -20,6 +34,10 @@
   --line:#EADDCB;
   --radius:18px;
   --shadow:0 10px 30px rgba(110,65,40,.10);
+  --font-display:'Fraunces',Georgia,serif;
+  --font-body:'Nunito',-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+}
+html[data-lang="zh"]{
   --font-display:'ZCOOL XiaoWei',serif;
   --font-body:'Noto Sans SC',-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
 }
@@ -44,16 +62,22 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--collar);ou
 /* ---------- 顶栏 ---------- */
 header{
   max-width:760px;margin:0 auto;padding:20px 20px 0;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
 }
 .brand{display:flex;align-items:center;gap:10px}
 .brand .paw{font-size:26px;transform:rotate(-12deg)}
-.brand h1{font-family:var(--font-display);font-size:24px;font-weight:400;letter-spacing:2px}
+.brand h1{font-family:var(--font-display);font-size:24px;font-weight:400;letter-spacing:.5px}
+html[data-lang="zh"] .brand h1{letter-spacing:2px}
 .quota{
   font-size:13px;color:var(--ink-soft);background:var(--card);
   border:1px solid var(--line);border-radius:999px;padding:6px 14px;white-space:nowrap;
 }
 .quota b{color:var(--cocoa);font-weight:700}
+.lang-btn{
+  font-size:12px;color:var(--ink-soft);background:var(--card);
+  border:1px solid var(--line);border-radius:999px;padding:6px 11px;white-space:nowrap;
+}
+.lang-btn:hover{border-color:var(--cocoa);color:var(--cocoa)}
 
 /* ---------- 账号区 ---------- */
 .account{display:flex;align-items:center;gap:10px;position:relative}
@@ -91,6 +115,7 @@ header{
   position:absolute;top:-9px;left:50%;transform:translateX(-50%);
   background:var(--cocoa);color:#fff;font-size:10px;padding:1px 10px;border-radius:999px;white-space:nowrap;
 }
+.pack .pname{font-size:12px;font-weight:800;color:var(--cocoa);letter-spacing:.5px;margin-bottom:2px}
 .pack .credits{font-size:24px;font-weight:700;color:var(--cocoa)}
 .pack .credits small{font-size:13px;font-weight:400}
 .pack .price{font-size:16px;font-weight:700;margin-top:4px}
@@ -103,14 +128,16 @@ header{
   border-radius:14px;padding:12px 16px;font-size:13px;color:var(--ink);
   display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;text-align:left;
 }
+.invite[hidden]{display:none}
 .invite b{color:var(--cocoa)}
 
 /* ---------- 主体 ---------- */
 main{max-width:760px;margin:0 auto;padding:28px 20px 60px}
 .tagline{
   text-align:center;font-family:var(--font-display);
-  font-size:clamp(24px,5vw,34px);letter-spacing:1px;margin-bottom:8px;
+  font-size:clamp(24px,5vw,34px);letter-spacing:0;margin-bottom:8px;
 }
+html[data-lang="zh"] .tagline{letter-spacing:1px}
 .tagline em{font-style:normal;color:var(--cocoa);border-bottom:6px solid var(--blush)}
 .sub{
   text-align:center;color:var(--ink-soft);font-size:14px;margin-bottom:30px;
@@ -185,9 +212,10 @@ input[type=file]{display:none}
 .cta{
   display:block;width:100%;max-width:360px;margin:26px auto 0;
   background:var(--cocoa);color:#fff;font-size:17px;font-weight:700;
-  padding:15px;border-radius:999px;letter-spacing:2px;
+  padding:15px;border-radius:999px;letter-spacing:.5px;
   box-shadow:0 6px 0 var(--cocoa-deep);transition:transform .1s, box-shadow .1s;
 }
+html[data-lang="zh"] .cta{letter-spacing:2px}
 .cta:hover{transform:translateY(2px);box-shadow:0 4px 0 var(--cocoa-deep)}
 .cta:disabled{opacity:.45;cursor:not-allowed;transform:none}
 
@@ -265,37 +293,40 @@ footer .promises span::before{content:"🐾 ";font-size:11px}
 @media (max-width:480px){
   .grid{grid-template-columns:repeat(2,1fr)}
   .brand h1{font-size:20px}
+  .quota{padding:5px 10px;font-size:12px}
+  .lang-btn{padding:5px 9px}
 }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="brand"><span class="paw">🐾</span><h1>毛茸相馆</h1></div>
+  <div class="brand"><span class="paw">🐾</span><h1 id="brandName">FluffBooth</h1></div>
   <div class="account">
-    <div class="quota" id="quotaPill">今日免费 <b>3</b> / 3 张</div>
+    <div class="quota" id="quotaPill"><b>3</b>/3 free today</div>
+    <button class="lang-btn" id="langBtn">中文</button>
     <div id="gsiBtn" hidden></div>
-    <button class="avatar-btn" id="avatarBtn" hidden aria-label="账号菜单"><img class="avatar" id="avatarImg" alt="头像"></button>
+    <button class="avatar-btn" id="avatarBtn" hidden aria-label="Account menu"><img class="avatar" id="avatarImg" alt="Avatar"></button>
     <div class="menu" id="userMenu" hidden>
       <div class="menu-head"><span id="menuName"></span><br><small id="menuEmail"></small></div>
-      <button id="menuInvite">🐾 复制邀请链接（各得 3 张）</button>
-      <button id="menuBuy" hidden>🍖 购买额度</button>
-      <button id="menuLogout">退出登录</button>
+      <button id="menuInvite">🐾 Copy invite link (+3 each)</button>
+      <button id="menuBuy" hidden>🍖 Buy credits</button>
+      <button id="menuLogout">Sign out</button>
     </div>
   </div>
 </header>
 
 <main>
-  <p class="tagline">把你家毛孩子，拍成<em>没见过的样子</em></p>
-  <p class="sub">上传一张照片，挑个风格，30 秒拿到一张能直接发朋友圈的图</p>
+  <p class="tagline" id="tagline">Your pet has a <em>secret life</em>.</p>
+  <p class="sub" id="subline">One photo in, one masterpiece out — pick a style, get a share-ready portrait in ~30 seconds. No sign-up to try.</p>
 
   <!-- 第一步：上传 -->
   <div class="frame" id="uploadFrame">
-    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="上传宠物照片">
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload a pet photo">
       <span class="big-paw">🐶</span>
-      <h2>把照片放进相框里</h2>
-      <p>点击选择，或直接拖拽到这里</p>
-      <p class="hint">正脸、光线好的照片效果最棒 · 支持 JPG / PNG，10MB 以内</p>
+      <h2 id="dzTitle">Drop their best photo here</h2>
+      <p id="dzSub">Click to browse, or just drag it in</p>
+      <p class="hint" id="dzHint">Clear, front-facing photos work best · JPG / PNG, up to 10MB</p>
     </div>
     <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp">
   </div>
@@ -303,57 +334,54 @@ footer .promises span::before{content:"🐾 ";font-size:11px}
   <!-- 第二步：选模板 -->
   <section class="step" id="stepPick">
     <div class="preview-row">
-      <img id="previewImg" alt="你上传的宠物照片">
-      <div class="meta">就是这张啦！接下来挑一个风格，<br>每个风格我们都调试过，出图即成品。</div>
-      <button class="link-btn" id="reupload">换一张</button>
+      <img id="previewImg" alt="Your uploaded pet photo">
+      <div class="meta" id="metaText">Great choice — they're going to nail this.<br>Every style is pre-tuned, so what you get is the final shot.</div>
+      <button class="link-btn" id="reupload">Change photo</button>
     </div>
 
-    <div class="step-head"><h3>挑个风格</h3><span>选一个就好，生成后还能换</span></div>
+    <div class="step-head"><h3 id="pickTitle">Pick their vibe</h3><span id="pickHint">Just one — you can re-shoot after</span></div>
     <div class="tabs" id="tabs"></div>
     <div class="grid" id="grid"></div>
 
-    <button class="cta" id="generateBtn" disabled>先挑一个风格 🐾</button>
+    <button class="cta" id="generateBtn" disabled>Pick a style first 🐾</button>
   </section>
 
   <!-- 生成中 -->
   <section class="loading" id="loading">
     <div class="paw-trail"><span>🐾</span><span>🐾</span><span>🐾</span><span>🐾</span></div>
-    <p id="loadingText">正在给毛孩子化妆……</p>
-    <small>一般 10–30 秒，别走开</small>
+    <p id="loadingText">Convincing them to sit still…</p>
+    <small id="loadingHint">Usually 10–30 seconds. Worth every one of them.</small>
   </section>
 
   <!-- 结果 -->
   <section class="result" id="result">
     <div class="polaroid">
-      <img id="resultImg" alt="生成结果">
-      <div class="caption"><span id="captionStyle">油画里的它</span><small id="captionDate"></small></div>
+      <img id="resultImg" alt="Your pet's portrait">
+      <div class="caption"><span id="captionStyle"></span><small id="captionDate"></small></div>
     </div>
-    <!-- <div><span class="demo-badge" id="demoBadge" hidden>演示模式 · 部署后接入 AI 即为真实生成效果</span></div> -->
+    <!-- <div><span class="demo-badge" id="demoBadge" hidden>Demo mode · deploy the backend for real AI results</span></div> -->
     <div class="actions">
-      <button class="btn btn-share" id="shareBtn">分享给朋友 🐾</button>
-      <button class="btn btn-primary" id="downloadBtn">保存照片</button>
-      <button class="btn btn-ghost" id="retryStyle">换个风格</button>
-      <button class="btn btn-ghost" id="newPhoto">换张照片</button>
+      <button class="btn btn-share" id="shareBtn">Share the glow-up 🐾</button>
+      <button class="btn btn-primary" id="downloadBtn">Save photo</button>
+      <button class="btn btn-ghost" id="revealBtn">Before &amp; after 🎬</button>
+      <button class="btn btn-ghost" id="retryStyle">Try another style</button>
+      <button class="btn btn-ghost" id="newPhoto">New photo</button>
     </div>
     <!-- 微信内打开时的分享引导 -->
-    <div class="wx-guide" id="wxGuide" hidden>
-      <span class="wx-arrow">↗</span>
-      点右上角 <b>···</b> → <b>发送给朋友</b> / <b>分享到朋友圈</b><br>
-      <small>想存到相册：长按上方图片 → 保存图片</small>
-    </div>
+    <div class="wx-guide" id="wxGuide" hidden></div>
     <div class="invite" id="inviteCard" hidden>
-      <span id="inviteText">喜欢的话，分享给朋友——你和 TA 各得 <b>3 张</b>奖励额度 🐾</span>
-      <button class="btn btn-ghost" id="inviteBtn">复制邀请链接</button>
+      <span id="inviteText"></span>
+      <button class="btn btn-ghost" id="inviteBtn">Copy invite link</button>
     </div>
   </section>
 
   <!-- 购买额度弹窗 -->
   <div class="modal-mask" id="payMask" hidden>
     <div class="modal">
-      <h3>给毛孩子加餐 🍖</h3>
-      <p class="modal-sub">奖励额度永不过期，每日免费用完后自动使用</p>
+      <h3 id="payTitle">Refill the treat jar 🍖</h3>
+      <p class="modal-sub" id="paySub">Credits never expire — they kick in after your daily free ones.</p>
       <div class="packs" id="packList"></div>
-      <button class="link-btn" id="payClose">先不用了</button>
+      <button class="link-btn" id="payClose">Maybe later</button>
     </div>
   </div>
 
@@ -361,104 +389,353 @@ footer .promises span::before{content:"🐾 ";font-size:11px}
 </main>
 
 <footer>
-  <div class="promises">
-    <span>照片无备份上传自动删除</span>
-    <span>免注册先体验 · 登录每天免费 3 张</span>
-    <span>出图即成品，无需修图</span>
-  </div>
-  <p>毛茸相馆 · 用 AI 记录毛孩子的另一面</p>
+  <div class="promises" id="promises"></div>
+  <p id="footTag">FluffBooth · The other side of your best friend</p>
 </footer>
 
 <script>
 /* =========================================================
-   模板配置：prompt 用于真实 API；demo 用于无后端时的本地模拟
-   上线后只需维护这个数组即可上新模板（节日运营全靠它）
+   语言：URL ?lang= 参数 > localStorage > 浏览器语言，默认英文。
+   切换语言 = 记住选择 + 整页刷新（照片和已选风格经 sessionStorage 自动恢复）。
 ========================================================= */
+const lang = (() => {
+  const p = new URLSearchParams(location.search).get("lang");
+  if (p === "zh" || p === "en"){ try{ localStorage.setItem("fb_lang", p); }catch(e){} return p; }
+  try{
+    const saved = localStorage.getItem("fb_lang");
+    if (saved === "zh" || saved === "en") return saved;
+  }catch(e){}
+  return (navigator.language || "").toLowerCase().startsWith("zh") ? "zh" : "en";
+})();
+
+const STRINGS = {
+en:{
+  title:"FluffBooth — Your pet, but legendary",
+  brand:"FluffBooth",
+  tagline:'Your pet has a <em>secret life</em>.',
+  sub:"One photo in, one masterpiece out — pick a style, get a share-ready portrait in ~30 seconds. No sign-up to try.",
+  dzAria:"Upload a pet photo",
+  dzTitle:"Drop their best photo here",
+  dzSub:"Click to browse, or just drag it in",
+  dzHint:"Clear, front-facing photos work best · JPG / PNG, up to 10MB",
+  previewAlt:"Your uploaded pet photo",
+  metaText:"Great choice — they're going to nail this.<br>Every style is pre-tuned, so what you get is the final shot.",
+  reupload:"Change photo",
+  pickTitle:"Pick their vibe",
+  pickHint:"Just one — you can re-shoot after",
+  hotTag:"HOT",
+  ctaPick:"Pick a style first 🐾",
+  ctaMake:n=>`Create "${n}" 🐾`,
+  loadingLines:[
+    "Convincing them to sit still…",
+    "Fluffing every individual hair…",
+    "Negotiating fees with the talent…",
+    "Applying a tiny bit of blush…",
+    "The talent has requested more treats…",
+    "Almost done — they're extremely photogenic…",
+  ],
+  loadingHint:"Usually 10–30 seconds. Worth every one of them.",
+  captionOf:n=>`${n} era`,
+  dateLocale:"en-US",
+  resultAlt:"Your pet's portrait",
+  save:"Save photo",
+  share:"Share the glow-up 🐾",
+  reveal:"Before & after 🎬",
+  retry:"Try another style",
+  newPhoto:"New photo",
+  payTitle:"Refill the treat jar 🍖",
+  paySub:"Credits never expire — they kick in after your daily free ones.",
+  payClose:"Maybe later",
+  packNames:{small:"Snack Pack",mid:"Feast Pack",large:"Buffet Pack"},
+  packUnit:"portraits",
+  bestValue:"Best value",
+  perImage:v=>`≈ $${v} each`,
+  quotaDemo:(l,lim)=>`<b>${l}</b>/${lim} free today`,
+  quotaAnon:(l,lim)=>`<b>${l}</b>/${lim} free try today`,
+  quotaUser:(l,lim)=>`<b>${l}</b>/${lim} free today`,
+  quotaBonus:c=>` + <b>${c}</b> bonus`,
+  menuAria:"Account menu",
+  avatarAlt:"Avatar",
+  menuInvite:n=>`🐾 Copy invite link (+${n} each)`,
+  menuBuy:"🍖 Buy credits",
+  menuLogout:"Sign out",
+  defaultUser:"Fluff friend",
+  inviteText:n=>`Love it? Send it to a friend — you each get <b>${n} bonus portraits</b> 🐾`,
+  inviteBtn:"Copy invite link",
+  copied:"Copied 🐾",
+  copyPrompt:"Copy this invite link:",
+  wxGuide:'<span class="wx-arrow">↗</span>Tap <b>···</b> in the top-right → <b>Send to a friend</b> / <b>Share to Moments</b><br><small>To save it: long-press the image above → Save image</small>',
+  errFormat:"That doesn't look like a JPG / PNG / WebP — try another photo",
+  errSize:"That photo's over 10MB — got a slightly smaller one?",
+  errQuotaDemo:"That's all the free portraits for today — come back tomorrow!",
+  errQuotaAnon:"That was today's free try! Sign in with Google for 3 free portraits every day.",
+  errQuotaUser:n=>`Today's freebies are all used up — invite a friend (you both get +${n}) or grab a pack 🍖`,
+  errGenFail:"The studio hiccuped — your credit is safe, give it another try",
+  errLoginFailed:"Sign-in didn't work — please try again",
+  errLoginToBuy:"Sign in first so your credits stay on your account",
+  errPayUnavailable:"Payments are napping — please try again in a bit",
+  payVerified:"Credits are in — time for a new photoshoot 🎉",
+  payNotFound:"Couldn't confirm the payment — if you were charged, credits will arrive shortly",
+  shareText:n=>`I just gave my pet the "${n}" treatment 🐾 Free, takes 30 seconds:`,
+  shareCopied:"Share text copied — go paste it to a friend 🐾",
+  shareManual:"Copy this link to share: ",
+  fileBase:n=>`FluffBooth_${n}_`,
+  revealName:"BeforeAfter",
+  promises:[
+    "Photos are processed, then gone — never stored, never used for training",
+    "Free to try, no sign-up · 3 free daily with an account",
+    "Share-ready, straight out of the booth",
+  ],
+  footTag:"FluffBooth · The other side of your best friend",
+  langBtn:"中文",
+},
+zh:{
+  title:"毛茸相馆 · 给宠物拍一张不一样的照片",
+  brand:"毛茸相馆",
+  tagline:'把你家毛孩子，拍成<em>没见过的样子</em>',
+  sub:"上传一张照片，挑个风格，30 秒拿到一张能直接发朋友圈的图",
+  dzAria:"上传宠物照片",
+  dzTitle:"把照片放进相框里",
+  dzSub:"点击选择，或直接拖拽到这里",
+  dzHint:"正脸、光线好的照片效果最棒 · 支持 JPG / PNG，10MB 以内",
+  previewAlt:"你上传的宠物照片",
+  metaText:"就是这张啦！接下来挑一个风格，<br>每个风格我们都调试过，出图即成品。",
+  reupload:"换一张",
+  pickTitle:"挑个风格",
+  pickHint:"选一个就好，生成后还能换",
+  hotTag:"人气",
+  ctaPick:"先挑一个风格 🐾",
+  ctaMake:n=>`生成「${n}」 🐾`,
+  loadingLines:[
+    "正在给毛孩子化妆……","调色师正在认真工作……","快好了，它今天特别上镜……","正在装裱这张大片……",
+  ],
+  loadingHint:"一般 10–30 秒，别走开",
+  captionOf:n=>`${n}的它`,
+  dateLocale:"zh-CN",
+  resultAlt:"生成结果",
+  save:"保存照片",
+  share:"分享给朋友 🐾",
+  reveal:"保存前后对比 🎬",
+  retry:"换个风格",
+  newPhoto:"换张照片",
+  payTitle:"给毛孩子加餐 🍖",
+  paySub:"奖励额度永不过期，每日免费用完后自动使用",
+  payClose:"先不用了",
+  packNames:{small:"小食包",mid:"加餐包",large:"豪华包"},
+  packUnit:"张",
+  bestValue:"最划算",
+  perImage:v=>`约 $${v}/张`,
+  quotaDemo:(l,lim)=>`今日免费 <b>${l}</b> / ${lim} 张`,
+  quotaAnon:(l,lim)=>`免费体验 <b>${l}</b> / ${lim} 张`,
+  quotaUser:(l,lim)=>`今日免费 <b>${l}</b> / ${lim} 张`,
+  quotaBonus:c=>` + 奖励 <b>${c}</b>`,
+  menuAria:"账号菜单",
+  avatarAlt:"头像",
+  menuInvite:n=>`🐾 复制邀请链接（各得 ${n} 张）`,
+  menuBuy:"🍖 购买额度",
+  menuLogout:"退出登录",
+  defaultUser:"毛茸用户",
+  inviteText:n=>`喜欢的话，分享给朋友——你和 TA 各得 <b>${n} 张</b>奖励额度 🐾`,
+  inviteBtn:"复制邀请链接",
+  copied:"已复制 🐾",
+  copyPrompt:"复制这个邀请链接：",
+  wxGuide:'<span class="wx-arrow">↗</span>点右上角 <b>···</b> → <b>发送给朋友</b> / <b>分享到朋友圈</b><br><small>想存到相册：长按上方图片 → 保存图片</small>',
+  errFormat:"请上传 JPG、PNG 或 WebP 格式的照片",
+  errSize:"照片超过 10MB 了，换张小一点的吧",
+  errQuotaDemo:"今天的免费额度用完啦，明天再来～",
+  errQuotaAnon:"今天的免费体验用完啦～ 登录后每天免费 3 张，还能邀请好友拿奖励",
+  errQuotaUser:n=>`今天的免费额度用完啦～ 邀请好友注册，你和 TA 各得 ${n} 张奖励`,
+  errGenFail:"生成服务开小差了——放心额度没扣，再试一次吧",
+  errLoginFailed:"登录没成功，请再试一次",
+  errLoginToBuy:"先登录，购买的额度才能记在你的账号上～",
+  errPayUnavailable:"支付服务暂时不可用，请稍后再试",
+  payVerified:"额度已到账，去给毛孩子拍新照片吧 🎉",
+  payNotFound:"未查到付款结果，如已扣款额度稍后会自动到账",
+  shareText:n=>`我用毛茸相馆给毛孩子拍了张「${n}」风格的照片，你也来试试 🐾`,
+  shareCopied:"分享文案已复制，去粘贴给朋友吧 🐾",
+  shareManual:"可手动复制网址分享：",
+  fileBase:n=>`毛茸相馆_${n}_`,
+  revealName:"前后对比",
+  promises:[
+    "照片无备份上传自动删除",
+    "免注册先体验 · 登录每天免费 3 张",
+    "出图即成品，无需修图",
+  ],
+  footTag:"毛茸相馆 · 用 AI 记录毛孩子的另一面",
+  langBtn:"EN",
+},
+};
+const S = () => STRINGS[lang];
+const L = x => (typeof x === "object" ? (x[lang] || x.en) : x);
+
+/* =========================================================
+   模板配置：prompt 用于真实 API（保持英文，且不含品牌词）；
+   name/desc 双语；demo 用于无后端时的本地模拟。
+   cat 是分类 key，显示名在 CATS 里。only(lang, month) 可做季节/语言限定。
+========================================================= */
+const CATS = {
+  twist:{en:"Plot Twist", zh:"反转梗"},
+  art:{en:"Masterpiece", zh:"艺术风格"},
+  toon:{en:"Toon", zh:"动漫化"},
+  dress:{en:"Dress-Up", zh:"换装配饰"},
+  holiday:{en:"Occasions", zh:"节日限定"},
+};
+
 const TEMPLATES = [
+  // 反转梗（2026 已验证的传播型模板）
+  {cat:"twist", id:"human", emo:"🧑‍🎤", name:{en:"If They Were Human",zh:"拟人写真"}, desc:{en:"The 10-million-post trend",zh:"如果 TA 是个人，大概长这样"}, hot:true,
+   prompt:"Reimagine this pet as a human person in a studio portrait: hair color and texture matching the pet's fur, same expression, same personality and energy, the collar or accessories echoed in the clothing, photorealistic, unmistakably the same soul.",
+   demo:{filter:"contrast(1.06) saturate(1.05)", sticker:"🧑‍🎤", pos:"head"}},
+  {cat:"twist", id:"mugshot", emo:"🚨", name:{en:"The Mugshot",zh:"疑犯登记照"}, desc:{en:"Charged with: crimes against snacks",zh:"罪名：偷吃零食"}, hot:true,
+   prompt:"Edit this pet photo into a playful police booking mugshot: the pet holding a blank booking placard, height chart lines in the background, harsh flash lighting, deadpan expression, keep the pet's face and fur completely unchanged and photorealistic.",
+   demo:{filter:"grayscale(.35) contrast(1.25) brightness(1.05)", vignette:.25, sticker:"🚨", pos:"head"}},
+  {cat:"twist", id:"figure", emo:"🧸", name:{en:"Action Figure",zh:"限量手办"}, desc:{en:"Collector's edition. Mint in box.",zh:"未拆封，收藏级"},
+   prompt:"Turn this pet into a collectible action figure sealed in retail blister packaging: a molded figure of the pet, small accessories (food bowl, favorite toy, leash) in side compartments, bold toy-brand card design, clean product photography, keep the pet's colors and markings faithful.",
+   demo:{filter:"saturate(1.5) contrast(1.2)", sticker:"🧸", pos:"chest"}},
+  {cat:"twist", id:"yearbook", emo:"📖", name:{en:"Yearbook '89",zh:"复古毕业册"}, desc:{en:"Voted Most Likely to Nap",zh:"全班「最容易睡着」奖"},
+   prompt:"Edit this pet photo into a 1980s American school yearbook portrait: retro laser-beam studio background, soft feathered lighting, preppy outfit with a big collar, slight head tilt, keep the pet's face and fur clearly recognizable, photorealistic.",
+   demo:{filter:"sepia(.35) saturate(1.15) contrast(.95) brightness(1.05)", vignette:.3, sticker:"📖", pos:"chest"}},
   // 艺术风格
-  {cat:"艺术风格", id:"oil",    emo:"🎨", name:"古典油画", desc:"博物馆同款贵族范",
+  {cat:"art", id:"oil", emo:"🎨", name:{en:"Renaissance",zh:"古典油画"}, desc:{en:"Hangs in the Louvre (emotionally)",zh:"博物馆同款贵族范"},
    prompt:"Transform this pet photo into a classical oil painting portrait, Renaissance style, rich warm tones, dramatic lighting, ornate background, keep the pet's exact facial features, fur pattern and colors perfectly recognizable.",
    demo:{filter:"sepia(.45) saturate(1.5) contrast(1.15) brightness(1.02)", vignette:.5}},
-  {cat:"艺术风格", id:"water",  emo:"🖌️", name:"清新水彩", desc:"温柔得像绘本插画",
+  {cat:"art", id:"water", emo:"🖌️", name:{en:"Watercolor",zh:"清新水彩"}, desc:{en:"Soft as a Sunday nap",zh:"温柔得像绘本插画"},
    prompt:"Transform this pet photo into a soft watercolor illustration, gentle pastel washes, white paper texture edges, light and airy, keep the pet's exact markings and face clearly recognizable.",
    demo:{filter:"saturate(1.25) brightness(1.12) contrast(.88) blur(0.6px)", vignette:0}},
-  {cat:"艺术风格", id:"film",   emo:"📷", name:"复古胶片", desc:"九十年代的旧时光",
-   prompt:"Transform this pet photo into a vintage 35mm film photograph, Kodak warm tones, subtle grain, soft faded contrast, nostalgic 1990s mood, keep the pet completely realistic and recognizable.",
+  {cat:"art", id:"film", emo:"📷", name:{en:"'90s Film",zh:"复古胶片"}, desc:{en:"Shot on dad's camera, 1994",zh:"九十年代的旧时光"},
+   prompt:"Transform this pet photo into a vintage 35mm film photograph, warm nostalgic tones, subtle grain, soft faded contrast, 1990s mood, keep the pet completely realistic and recognizable.",
    demo:{filter:"sepia(.3) saturate(.85) contrast(.95) brightness(1.05)", grain:true, vignette:.35}},
-  {cat:"艺术风格", id:"royal",  emo:"👑", name:"皇家贵族", desc:"戴上王冠君临天下", hot:true,
+  {cat:"art", id:"royal", emo:"👑", name:{en:"Their Majesty",zh:"皇家贵族"}, desc:{en:"Bow before the floof",zh:"戴上王冠君临天下"}, hot:true,
    prompt:"Transform this pet photo into a majestic Renaissance royal portrait: the pet wearing an ornate gold crown and rich velvet royal robe with ermine trim, regal palace backdrop, classical oil painting style, keep the pet's exact facial features, fur pattern and colors perfectly recognizable.",
    demo:{filter:"sepia(.4) saturate(1.4) contrast(1.18)", vignette:.5, sticker:"👑", pos:"head"}},
-  {cat:"艺术风格", id:"felt",   emo:"🧶", name:"羊毛毡手作", desc:"软fufu的手工质感",
+  {cat:"art", id:"felt", emo:"🧶", name:{en:"Felted",zh:"羊毛毡手作"}, desc:{en:"Handmade, huggable, 100% wool",zh:"软fufu的手工质感"},
    prompt:"Transform this pet into an adorable needle-felted wool figurine, handmade craft style, soft fuzzy wool texture, warm cozy lighting, photographed on a wooden table, keep the pet's fur colors and distinctive markings faithful to the photo.",
    demo:{filter:"saturate(1.2) brightness(1.1) blur(0.8px) contrast(.92)", vignette:0}},
-  {cat:"艺术风格", id:"clay",   emo:"🎬", name:"黏土动画", desc:"定格动画里的小演员",
+  {cat:"art", id:"clay", emo:"🎬", name:{en:"Claymation",zh:"黏土动画"}, desc:{en:"Stop-motion's newest star",zh:"定格动画里的小演员"},
    prompt:"Transform this pet into a charming claymation stop-motion character, smooth clay texture with subtle handmade imperfections, vibrant colors, whimsical miniature set background, keep the pet's markings and face clearly recognizable.",
    demo:{filter:"saturate(1.5) contrast(1.15) brightness(1.05) blur(0.3px)", vignette:.15}},
-  {cat:"艺术风格", id:"popart", emo:"🌈", name:"波普艺术", desc:"安迪·沃霍尔同款",
-   prompt:"Transform this pet photo into a bold pop art portrait, Andy-Warhol-inspired high-contrast colors, flat graphic shapes, vivid complementary color background, keep the pet's facial features and markings clearly recognizable.",
+  {cat:"art", id:"popart", emo:"🌈", name:{en:"Pop Art",zh:"波普艺术"}, desc:{en:"Loud, proud, gallery-approved",zh:"大胆撞色艺术感"},
+   prompt:"Transform this pet photo into a bold 1960s pop-art screen-print portrait, high-contrast flat color blocks, vivid complementary color background, keep the pet's facial features and markings clearly recognizable.",
    demo:{filter:"saturate(2.4) contrast(1.5) brightness(1.05)", vignette:0}},
   // 动漫化
-  {cat:"动漫化", id:"ghibli", emo:"🌿", name:"治愈动画", desc:"宫崎骏世界的小住客", hot:true,
-   prompt:"Transform this pet into a heartwarming hand-drawn anime style character, Studio-Ghibli-inspired soft colors, big expressive eyes, lush natural background, keep the pet's fur colors and distinctive markings faithful to the photo.",
+  {cat:"toon", id:"ghibli", emo:"🌿", name:{en:"Cozy Anime",zh:"治愈动画"}, desc:{en:"Resident of a gentler world",zh:"治愈系动画的小住客"}, hot:true,
+   prompt:"Transform this pet into a heartwarming hand-drawn anime film character, soft watercolor-like palette, big expressive eyes, lush natural background, gentle whimsical atmosphere, keep the pet's fur colors and distinctive markings faithful to the photo.",
    demo:{filter:"saturate(1.6) contrast(1.1) brightness(1.08)", vignette:0}},
-  {cat:"动漫化", id:"manga",  emo:"✨", name:"日漫主角", desc:"它就是这部番的主角",
+  {cat:"toon", id:"manga", emo:"✨", name:{en:"Anime Lead",zh:"日漫主角"}, desc:{en:"Season 1, Episode 1: them",zh:"它就是这部番的主角"},
    prompt:"Transform this pet into a Japanese anime protagonist style illustration, clean cel shading, vivid colors, sparkle highlights in the eyes, dynamic anime background, keep markings and colors faithful to the original pet.",
    demo:{filter:"saturate(1.8) contrast(1.3)", vignette:0}},
-  {cat:"动漫化", id:"threed", emo:"🧸", name:"3D 萌系", desc:"像从动画电影走出来",
-   prompt:"Transform this pet into an adorable 3D animated movie character, Pixar-style rendering, soft studio lighting, big cute eyes, fluffy detailed fur matching the original colors and patterns exactly.",
+  {cat:"toon", id:"threed", emo:"🧸", name:{en:"3D Toon",zh:"3D 萌系"}, desc:{en:"Fresh from the movie premiere",zh:"像从动画电影走出来"},
+   prompt:"Transform this pet into an adorable 3D animated feature-film character, polished studio rendering, soft lighting, big cute eyes, fluffy detailed fur matching the original colors and patterns exactly.",
    demo:{filter:"saturate(1.4) contrast(1.18) brightness(1.06) blur(0.4px)", vignette:.2}},
-  {cat:"动漫化", id:"cartoon", emo:"📺", name:"美式卡通", desc:"周六早晨的动画片",
+  {cat:"toon", id:"cartoon", emo:"📺", name:{en:"Saturday Cartoon",zh:"美式卡通"}, desc:{en:"Cereal sold separately",zh:"周六早晨的动画片"},
    prompt:"Transform this pet into a cheerful American cartoon character, bold clean outlines, flat bright colors, expressive happy face, fun simple background, keep the pet's fur colors and distinctive markings faithful to the photo.",
    demo:{filter:"saturate(1.7) contrast(1.3) brightness(1.06)", vignette:0}},
   // 换装配饰
-  {cat:"换装配饰", id:"suit",  emo:"🤵", name:"西装绅士", desc:"今天它是总裁", 
+  {cat:"dress", id:"suit", emo:"🤵", name:{en:"The CEO",zh:"西装绅士"}, desc:{en:"Corner office. Naps at 2pm.",zh:"今天它是总裁"},
    prompt:"Edit this pet photo: dress the pet in an elegant tailored suit with a bow tie, professional studio portrait background, keep the pet's face, fur and expression completely unchanged and photorealistic.",
    demo:{filter:"contrast(1.08) brightness(1.02)", sticker:"🎀", pos:"chest"}},
-  {cat:"换装配饰", id:"scarf", emo:"🧣", name:"针织围巾", desc:"冬日里的小暖炉",
+  {cat:"dress", id:"scarf", emo:"🧣", name:{en:"Cozy Scarf",zh:"针织围巾"}, desc:{en:"Professional lap warmer",zh:"冬日里的小暖炉"},
    prompt:"Edit this pet photo: add a cozy hand-knitted scarf around the pet's neck in warm autumn colors, soft warm lighting, keep the pet's face and fur completely unchanged and photorealistic.",
    demo:{filter:"sepia(.15) brightness(1.05) saturate(1.1)", sticker:"🧣", pos:"chest"}},
-  {cat:"换装配饰", id:"collar",emo:"💎", name:"珍珠项圈", desc:"低调又奢华",
+  {cat:"dress", id:"collar", emo:"💎", name:{en:"Pearls",zh:"珍珠项圈"}, desc:{en:"Old money energy",zh:"低调又奢华"},
    prompt:"Edit this pet photo: add an elegant pearl collar necklace on the pet, soft glamour studio lighting, keep the pet's face, fur and pose completely unchanged and photorealistic.",
    demo:{filter:"brightness(1.06) contrast(1.05)", sticker:"📿", pos:"chest"}},
-  {cat:"换装配饰", id:"astro", emo:"🚀", name:"宇航员", desc:"代表毛星出征宇宙",
+  {cat:"dress", id:"astro", emo:"🚀", name:{en:"Astronaut",zh:"宇航员"}, desc:{en:"One small step for paws",zh:"代表毛星出征宇宙"},
    prompt:"Edit this pet photo: dress the pet in a realistic white astronaut spacesuit with the helmet visor open showing the face, starry space and Earth in the background, keep the pet's face and fur completely unchanged and photorealistic.",
    demo:{filter:"contrast(1.1) brightness(.95) saturate(1.1)", vignette:.4, sticker:"🚀", pos:"head"}},
-  {cat:"换装配饰", id:"cowboy", emo:"🤠", name:"西部牛仔", desc:"狂野西部小警长",
+  {cat:"dress", id:"cowboy", emo:"🤠", name:{en:"The Sheriff",zh:"西部牛仔"}, desc:{en:"There's a new sheriff in town",zh:"狂野西部小警长"},
    prompt:"Edit this pet photo: add a brown leather cowboy hat and a red bandana on the pet, golden-hour western prairie background, keep the pet's face and fur completely unchanged and photorealistic.",
    demo:{filter:"sepia(.25) saturate(1.2) contrast(1.08)", vignette:.3, sticker:"🤠", pos:"head"}},
-  {cat:"换装配饰", id:"grad",  emo:"🎓", name:"毕业纪念照", desc:"恭喜毛孩子毕业啦", hot:true,
+  {cat:"dress", id:"grad", emo:"🎓", name:{en:"The Graduate",zh:"毕业纪念照"}, desc:{en:"Top of Good Boy School, class of '26",zh:"恭喜毛孩子毕业啦"}, hot:true,
    prompt:"Edit this pet photo: dress the pet in a graduation cap and gown holding a diploma, celebratory campus background with soft bokeh, keep the pet's face and fur completely unchanged and photorealistic.",
    demo:{filter:"contrast(1.08) brightness(1.04)", sticker:"🎓", pos:"head"}},
-  {cat:"换装配饰", id:"headshot", emo:"💼", name:"职业形象照", desc:"LinkedIn 头像就它了",
-   prompt:"Edit this pet photo: turn it into a professional LinkedIn-style business headshot, the pet wearing a smart business suit and tie, clean neutral studio background, soft professional lighting, keep the pet's face and fur completely unchanged and photorealistic.",
+  {cat:"dress", id:"headshot", emo:"💼", name:{en:"Pro Headshot",zh:"职业形象照"}, desc:{en:"Open to work (mostly napping)",zh:"求职头像就它了"},
+   prompt:"Edit this pet photo: turn it into a professional corporate business headshot, the pet wearing a smart business suit and tie, clean neutral studio background, soft professional lighting, keep the pet's face and fur completely unchanged and photorealistic.",
    demo:{filter:"saturate(.85) contrast(1.12) brightness(1.06)", sticker:"💼", pos:"chest"}},
   // 节日限定
-  {cat:"节日限定", id:"bday", emo:"🎂", name:"生日派对", desc:"给寿星拍张纪念照", hot:true,
+  {cat:"holiday", id:"bday", emo:"🎂", name:{en:"Birthday Star",zh:"生日派对"}, desc:{en:"It's their party",zh:"给寿星拍张纪念照"}, hot:true,
    prompt:"Edit this pet photo: add a colorful birthday party hat on the pet's head, confetti and balloons in the background, festive warm lighting, keep the pet's face and fur completely unchanged and photorealistic.",
    demo:{filter:"saturate(1.3) brightness(1.08)", sticker:"🥳", pos:"head"}},
-  {cat:"节日限定", id:"xmas", emo:"🎄", name:"圣诞毛衣", desc:"红绿配色年度大片",
+  {cat:"holiday", id:"xmas", emo:"🎄", name:{en:"Christmas Card",zh:"圣诞毛衣"}, desc:{en:"The annual family flex",zh:"红绿配色年度大片"},
    prompt:"Edit this pet photo: dress the pet in a cozy red Christmas sweater with a Santa hat, warm fairy lights and Christmas tree bokeh background, keep the pet's face and fur completely unchanged and photorealistic.",
    demo:{filter:"saturate(1.25) contrast(1.1)", sticker:"🎅", pos:"head"}},
-  {cat:"节日限定", id:"newyear", emo:"🧧", name:"新春拜年", desc:"红红火火过大年",
+  {cat:"holiday", id:"newyear", emo:"🧧", name:{en:"Lunar New Year",zh:"新春拜年"}, desc:{en:"Dressed for the red envelope",zh:"红红火火过大年"},
+   only:(lg,m)=> lg==="zh" || m===1 || m===2,
    prompt:"Edit this pet photo: dress the pet in a traditional Chinese New Year red tang suit, festive red lanterns and gold decorations in the background, keep the pet's face and fur completely unchanged and photorealistic.",
    demo:{filter:"saturate(1.35) contrast(1.12) brightness(1.03)", sticker:"🧧", pos:"chest"}},
-  {cat:"节日限定", id:"beach", emo:"🏖️", name:"夏日海滩", desc:"墨镜一戴谁都不爱", hot:true,
+  {cat:"holiday", id:"beach", emo:"🏖️", name:{en:"Beach Day",zh:"夏日海滩"}, desc:{en:"Sunglasses stay ON",zh:"墨镜一戴谁都不爱"}, hot:true,
    prompt:"Edit this pet photo: put stylish sunglasses on the pet, tropical beach background with palm trees and turquoise sea, bright summer sunlight, keep the pet's face and fur completely unchanged and photorealistic.",
    demo:{filter:"saturate(1.45) brightness(1.12) contrast(1.05)", sticker:"🕶️", pos:"head"}},
 ];
 
-const LOADING_LINES = [
-  "正在给毛孩子化妆……","调色师正在认真工作……","快好了，它今天特别上镜……","正在装裱这张大片……"
-];
+// 当前语言/月份下可见的模板（季节限定用）
+const activeTemplates = () => TEMPLATES.filter(t => !t.only || t.only(lang, new Date().getMonth() + 1));
 
 /* ---------- 状态 ---------- */
 let srcDataUrl = null;      // 用户原图
 let selected   = null;      // 选中的模板
 let quota      = 3;         // 仅演示模式（无后端）时的本地额度；线上额度由后端管
 let shareFile  = null;      // 结果图预先转好的 File，供移动端系统分享/存相册用
-let currentCat = "艺术风格";
+let revealFile = null;      // 前后对比卡预先转好的 File（share 必须在手势内同步调用）
+let currentCat = "twist";
 
 const $ = id => document.getElementById(id);
+
+/* ---------- 应用语言到静态界面（动态部分各自用 S() 取词） ---------- */
+function applyLang(){
+  const s = S();
+  document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+  document.documentElement.dataset.lang = lang;
+  document.title = s.title;
+  $("brandName").textContent = s.brand;
+  $("tagline").innerHTML = s.tagline;
+  $("subline").textContent = s.sub;
+  $("dropzone").setAttribute("aria-label", s.dzAria);
+  $("dzTitle").textContent = s.dzTitle;
+  $("dzSub").textContent = s.dzSub;
+  $("dzHint").textContent = s.dzHint;
+  $("previewImg").alt = s.previewAlt;
+  $("metaText").innerHTML = s.metaText;
+  $("reupload").textContent = s.reupload;
+  $("pickTitle").textContent = s.pickTitle;
+  $("pickHint").textContent = s.pickHint;
+  $("generateBtn").textContent = s.ctaPick;
+  $("loadingHint").textContent = s.loadingHint;
+  $("resultImg").alt = s.resultAlt;
+  $("shareBtn").textContent = s.share;
+  $("downloadBtn").textContent = s.save;
+  $("revealBtn").textContent = s.reveal;
+  $("retryStyle").textContent = s.retry;
+  $("newPhoto").textContent = s.newPhoto;
+  $("payTitle").textContent = s.payTitle;
+  $("paySub").textContent = s.paySub;
+  $("payClose").textContent = s.payClose;
+  $("avatarBtn").setAttribute("aria-label", s.menuAria);
+  $("avatarImg").alt = s.avatarAlt;
+  $("menuBuy").textContent = s.menuBuy;
+  $("menuLogout").textContent = s.menuLogout;
+  $("inviteBtn").textContent = s.inviteBtn;
+  $("wxGuide").innerHTML = s.wxGuide;
+  $("promises").innerHTML = s.promises.map(p => `<span>${p}</span>`).join("");
+  $("footTag").textContent = s.footTag;
+  $("langBtn").textContent = s.langBtn;
+  if (lang === "zh"){ // 中文字体按需加载，英文首屏不背这个体积
+    const l = document.createElement("link");
+    l.rel = "stylesheet";
+    l.href = "https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Sans+SC:wght@400;500;700&display=swap";
+    document.head.appendChild(l);
+  }
+  renderQuota();
+}
+
+/* 语言切换：记住选择，整页刷新（照片和已选风格经 sessionStorage 恢复） */
+$("langBtn").onclick = () => {
+  const next = lang === "zh" ? "en" : "zh";
+  try{ localStorage.setItem("fb_lang", next); }catch(e){}
+  const u = new URL(location.href);
+  u.searchParams.set("lang", next);
+  location.href = u.toString();
+};
 
 /* =========================================================
    账号 / 额度 / 邀请
@@ -499,11 +776,11 @@ async function verifyPayment(sid){
     const d = await r.json();
     if(r.ok && d.paid){
       if(d.quota){ auth.quota = d.quota; renderQuota(); }
-      showError("额度已到账，去给毛孩子拍新照片吧 🎉", true);
+      showError(S().payVerified, true);
     }else{
-      showError(d.error || "未查到付款结果，如已扣款额度稍后会自动到账");
+      showError(S().payNotFound);
     }
-  }catch(e){ showError("未查到付款结果，如已扣款额度稍后会自动到账"); }
+  }catch(e){ showError(S().payNotFound); }
 }
 
 /* 手机 redirect 登录会整页跳转，照片和已选风格存 sessionStorage，跳回来恢复现场 */
@@ -522,17 +799,18 @@ function restoreSession(){
     if(selected){
       const btn = $("generateBtn");
       btn.disabled = false;
-      btn.textContent = `生成「${selected.name}」 🐾`;
+      btn.textContent = S().ctaMake(L(selected.name));
     }
   }catch(e){ /* sessionStorage 不可用就算了 */ }
 }
 
 (async () => {
+  applyLang();
   restoreSession();
   const params = new URLSearchParams(location.search);
   if(params.get("login_error")){
     history.replaceState(null, "", location.pathname);
-    showError("登录没成功，请再试一次");
+    showError(S().errLoginFailed);
   }
   await loadMe();
   const sid = params.get("session_id");
@@ -562,7 +840,7 @@ function initGsi(clientId, tries = 0){
     ux_mode: isMobile ? "redirect" : "popup",
     login_uri: location.origin + "/api/auth",
   });
-  google.accounts.id.renderButton($("gsiBtn"), { type:"standard", shape:"pill", size:"medium", text:"signin", locale:"zh_CN" });
+  google.accounts.id.renderButton($("gsiBtn"), { type:"standard", shape:"pill", size:"medium", text:"signin", locale: lang === "zh" ? "zh_CN" : "en" });
 }
 
 async function onGoogleCredential(resp){
@@ -572,11 +850,11 @@ async function onGoogleCredential(resp){
       body: JSON.stringify({ credential: resp.credential, ref: localStorage.getItem("mr_ref") || "" })
     });
     const d = await r.json();
-    if(!r.ok) return showError(d.error || "登录失败，请重试");
+    if(!r.ok) return showError(S().errLoginFailed);
     localStorage.removeItem("mr_ref");
     auth.loggedIn = true; auth.user = d.user; auth.quota = d.quota;
     renderAccount(); hideError();
-  }catch(e){ showError("登录失败，请重试"); }
+  }catch(e){ showError(S().errLoginFailed); }
 }
 
 function renderAccount(){
@@ -585,23 +863,23 @@ function renderAccount(){
   $("avatarBtn").hidden = !auth.loggedIn;
   $("inviteCard").hidden = !auth.loggedIn;
   $("menuBuy").hidden = !auth.payEnabled;
-  $("menuInvite").textContent = `🐾 复制邀请链接（各得 ${auth.refBonus} 张）`;
-  $("inviteText").innerHTML = `喜欢的话，分享给朋友——你和 TA 各得 <b>${auth.refBonus} 张</b>奖励额度 🐾`;
+  $("menuInvite").textContent = S().menuInvite(auth.refBonus);
+  $("inviteText").innerHTML = S().inviteText(auth.refBonus);
   if(auth.loggedIn){
     $("avatarImg").src = auth.user.picture || "";
-    $("menuName").textContent = auth.user.name || "毛茸用户";
+    $("menuName").textContent = auth.user.name || S().defaultUser;
     $("menuEmail").textContent = auth.user.email || "";
   }
 }
 
 function renderQuota(){
   const pill = $("quotaPill");
-  if(!auth.configured){ pill.innerHTML = `今日免费 <b>${quota}</b> / 3 张`; return; }
+  if(!auth.configured){ pill.innerHTML = S().quotaDemo(quota, 3); return; }
   const q = auth.quota || { dailyLimit:0, usedToday:0, credits:0 };
   const left = Math.max(0, q.dailyLimit - q.usedToday);
   pill.innerHTML = q.loggedIn
-    ? `今日免费 <b>${left}</b> / ${q.dailyLimit} 张` + (q.credits > 0 ? ` + 奖励 <b>${q.credits}</b>` : "")
-    : `免费体验 <b>${left}</b> / ${q.dailyLimit} 张`;
+    ? S().quotaUser(left, q.dailyLimit) + (q.credits > 0 ? S().quotaBonus(q.credits) : "")
+    : S().quotaAnon(left, q.dailyLimit);
 }
 
 /* 账号菜单 */
@@ -613,14 +891,19 @@ $("menuLogout").onclick = async () => {
   location.reload();
 };
 
-/* 邀请链接 */
+/* 邀请链接（分享出口统一带邀请码，见 shareUrl） */
+function shareUrl(){
+  return (auth.loggedIn && auth.user && auth.user.refCode)
+    ? `${location.origin}/?ref=${auth.user.refCode}`
+    : location.origin;
+}
 async function copyInvite(btn){
   if(!auth.user || !auth.user.refCode) return;
-  const link = `${location.origin}/?ref=${auth.user.refCode}`;
+  const link = shareUrl();
   try{ await navigator.clipboard.writeText(link); }
-  catch(e){ window.prompt("复制这个邀请链接：", link); return; }
+  catch(e){ window.prompt(S().copyPrompt, link); return; }
   const t = btn.textContent;
-  btn.textContent = "已复制 🐾";
+  btn.textContent = S().copied;
   setTimeout(() => { btn.textContent = t; }, 1600);
 }
 $("menuInvite").onclick = e => copyInvite(e.currentTarget);
@@ -629,13 +912,14 @@ $("inviteBtn").onclick = e => copyInvite(e.currentTarget);
 /* ---------- 购买额度 ---------- */
 function openPay(){
   if(!auth.payEnabled) return;
-  if(!auth.loggedIn){ showError("先登录，购买的额度才能记在你的账号上～"); return; }
+  if(!auth.loggedIn){ showError(S().errLoginToBuy); return; }
   $("packList").innerHTML = auth.packs.map(p => `
     <button class="pack ${p.popular ? "popular" : ""}" data-pack="${p.id}">
-      ${p.popular ? '<span class="tag">最划算</span>' : ""}
-      <div class="credits">${p.credits}<small> 张</small></div>
+      ${p.popular ? `<span class="tag">${S().bestValue}</span>` : ""}
+      <div class="pname">${S().packNames[p.id] || p.name || ""}</div>
+      <div class="credits">${p.credits}<small> ${S().packUnit}</small></div>
       <div class="price">$${(p.amount/100).toFixed(2)}</div>
-      <div class="per">约 $${(p.amount/100/p.credits).toFixed(2)}/张</div>
+      <div class="per">${S().perImage((p.amount/100/p.credits).toFixed(2))}</div>
     </button>`).join("");
   $("packList").querySelectorAll(".pack").forEach(b => b.onclick = () => buyPack(b.dataset.pack, b));
   $("payMask").hidden = false;
@@ -648,9 +932,9 @@ async function buyPack(id, btn){
       body: JSON.stringify({ pack: id })
     });
     const d = await r.json();
-    if(!r.ok || !d.url){ btn.disabled = false; return showError(d.error || "支付服务暂时不可用"); }
+    if(!r.ok || !d.url){ btn.disabled = false; return showError(S().errPayUnavailable); }
     location.href = d.url; // 跳 Stripe 收银台
-  }catch(e){ btn.disabled = false; showError("支付服务暂时不可用，请稍后再试"); }
+  }catch(e){ btn.disabled = false; showError(S().errPayUnavailable); }
 }
 $("menuBuy").onclick = () => { $("userMenu").hidden = true; openPay(); };
 $("payClose").onclick = () => { $("payMask").hidden = true; };
@@ -668,8 +952,8 @@ fileInput.addEventListener("change", e => handleFile(e.target.files[0]));
 function handleFile(file){
   hideError();
   if(!file) return;
-  if(!/^image\/(jpeg|png|webp)$/.test(file.type)) return showError("请上传 JPG、PNG 或 WebP 格式的照片");
-  if(file.size > 10*1024*1024) return showError("照片超过 10MB 了，换张小一点的吧");
+  if(!/^image\/(jpeg|png|webp)$/.test(file.type)) return showError(S().errFormat);
+  if(file.size > 10*1024*1024) return showError(S().errSize);
   const reader = new FileReader();
   reader.onload = () => {
     // 压到长边 1024，省流量也省生成成本
@@ -695,19 +979,20 @@ function handleFile(file){
 
 /* ---------- 模板渲染 ---------- */
 function renderTabs(){
-  const cats = [...new Set(TEMPLATES.map(t=>t.cat))];
+  const list = activeTemplates();
+  const cats = [...new Set(list.map(t=>t.cat))];
   $("tabs").innerHTML = cats.map(c =>
-    `<button class="tab ${c===currentCat?"on":""}" data-cat="${c}">${c}<span class="dot">${TEMPLATES.filter(t=>t.cat===c).length}</span></button>`
+    `<button class="tab ${c===currentCat?"on":""}" data-cat="${c}">${L(CATS[c])}<span class="dot">${list.filter(t=>t.cat===c).length}</span></button>`
   ).join("");
   $("tabs").querySelectorAll(".tab").forEach(b => b.onclick = () => { currentCat=b.dataset.cat; renderTabs(); renderGrid(); });
 }
 function renderGrid(){
-  $("grid").innerHTML = TEMPLATES.filter(t=>t.cat===currentCat).map(t =>
+  $("grid").innerHTML = activeTemplates().filter(t=>t.cat===currentCat).map(t =>
     `<button class="tcard ${selected&&selected.id===t.id?"sel":""}" data-id="${t.id}" aria-pressed="${selected&&selected.id===t.id}">
-      ${t.hot?'<span class="tag">人气</span>':""}
+      ${t.hot?`<span class="tag">${S().hotTag}</span>`:""}
       <span class="emo">${t.emo}</span>
-      <span class="name">${t.name}</span>
-      <div class="desc">${t.desc}</div>
+      <span class="name">${L(t.name)}</span>
+      <div class="desc">${L(t.desc)}</div>
     </button>`
   ).join("");
   $("grid").querySelectorAll(".tcard").forEach(card => card.onclick = () => {
@@ -716,20 +1001,32 @@ function renderGrid(){
     renderGrid();
     const btn = $("generateBtn");
     btn.disabled = false;
-    btn.textContent = `生成「${selected.name}」 🐾`;
+    btn.textContent = S().ctaMake(L(selected.name));
   });
 }
+
+/* ---------- 生成中的等待文案轮播 ---------- */
+let loadingTimer = null;
+function startLoadingLines(){
+  const lines = S().loadingLines;
+  let i = Math.floor(Math.random()*lines.length);
+  $("loadingText").textContent = lines[i];
+  loadingTimer = setInterval(() => {
+    i = (i+1) % lines.length;
+    $("loadingText").textContent = lines[i];
+  }, 4000);
+}
+function stopLoadingLines(){ if(loadingTimer){ clearInterval(loadingTimer); loadingTimer = null; } }
 
 /* ---------- 生成 ---------- */
 $("generateBtn").onclick = async () => {
   if(!selected || !srcDataUrl) return;
-  if(!auth.configured && quota <= 0) return showError("今天的免费额度用完啦，明天再来～");
+  if(!auth.configured && quota <= 0) return showError(S().errQuotaDemo);
   hideError();
   show("loading"); hide("stepPick"); hide("result");
-  const line = LOADING_LINES[Math.floor(Math.random()*LOADING_LINES.length)];
-  $("loadingText").textContent = line;
+  startLoadingLines();
 
-  let resultUrl = null, isDemo = false;
+  let resultUrl = null, isDemo = false, viaCredit = false;
   try {
     // 真实通道：部署后由 /api/generate 调用图像模型
     const res = await fetch("/api/generate", {
@@ -740,8 +1037,8 @@ $("generateBtn").onclick = async () => {
     if(res.status === 402){
       // 额度用完：未登录引导登录，已登录引导购买/邀请
       const d = await res.json().catch(() => ({}));
-      hide("loading"); show("stepPick");
-      showError(d.error || "今天的额度用完啦，明天再来～");
+      stopLoadingLines(); hide("loading"); show("stepPick");
+      showError(d.code === "quota_anon" ? S().errQuotaAnon : S().errQuotaUser(auth.refBonus));
       if(d.code === "quota_anon" && window.google && google.accounts && google.accounts.id) google.accounts.id.prompt();
       if(d.code === "quota") openPay();
       return;
@@ -750,23 +1047,64 @@ $("generateBtn").onclick = async () => {
     const data = await res.json();
     if(!data.image) throw new Error("bad response");
     resultUrl = data.image;
+    viaCredit = data.viaCredit === true;
     if(data.quota){ auth.quota = data.quota; renderQuota(); }
   } catch(e) {
-    // 演示通道：本地模拟风格效果，保证 demo 完整可玩
+    // 后端已配置却失败：不做假图降级，明确报错让用户重试（额度未扣）
+    if(auth.configured){
+      console.error("generate failed:", e);
+      stopLoadingLines(); hide("loading"); show("stepPick");
+      showError(S().errGenFail);
+      return;
+    }
+    // 演示通道（无后端的本地预览）：本地模拟风格效果，保证 demo 完整可玩
     isDemo = true;
     resultUrl = await demoRender(srcDataUrl, selected.demo);
     await sleep(1800); // 模拟真实等待感
   }
 
+  // 免费额度出图带角标水印（付费 credit 出图无水印，顺便是买额度的理由）
+  if(!viaCredit) resultUrl = await addWatermark(resultUrl);
+
   if(!auth.configured){ quota -= 1; renderQuota(); }
   $("resultImg").src = resultUrl;
-  $("captionStyle").textContent = selected.name + "的它";
-  $("captionDate").textContent = new Date().toLocaleDateString("zh-CN");
+  $("captionStyle").textContent = S().captionOf(L(selected.name));
+  $("captionDate").textContent = new Date().toLocaleDateString(S().dateLocale);
   const badge = $("demoBadge"); if(badge) badge.hidden = !isDemo; // 元素被注释掉时判空防崩，避免卡住 loading
   $("wxGuide").hidden = true; // 新结果出来时收起上一次的微信分享引导
-  hide("loading"); show("result");
-  prepShareFile(resultUrl); // 提前把结果图转成 File，点"保存"时才能同步唤起系统分享（iOS 存相册）
+  stopLoadingLines(); hide("loading"); show("result");
+  prepShareFile(resultUrl);  // 提前把结果图转成 File，点"保存"时才能同步唤起系统分享（iOS 存相册）
+  prepRevealFile();          // 前后对比卡同理，提前合成好
 };
+
+/* 免费图角标水印：右下角半透明胶囊 "🐾 fluffbooth.com"（canvas 合成） */
+function addWatermark(dataUrl){
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      c.width = img.width; c.height = img.height;
+      const ctx = c.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      const fs = Math.max(14, Math.round(c.width * 0.028));
+      ctx.font = `600 ${fs}px Nunito, -apple-system, sans-serif`;
+      const text = "🐾 fluffbooth.com";
+      const tw = ctx.measureText(text).width;
+      const padX = fs * 0.7, padY = fs * 0.45, m = fs * 0.8;
+      const w = tw + padX * 2, h = fs + padY * 2;
+      const x = c.width - w - m, y = c.height - h - m;
+      ctx.fillStyle = "rgba(42,30,20,.45)";
+      if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(x, y, w, h, h/2); ctx.fill(); }
+      else ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "rgba(255,255,255,.92)";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, x + padX, y + h/2 + 1);
+      resolve(c.toDataURL("image/jpeg", .92));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
 
 /* 本地演示渲染：滤镜 + 贴纸 + 暗角 + 颗粒 */
 function demoRender(dataUrl, d){
@@ -802,29 +1140,87 @@ function demoRender(dataUrl, d){
   });
 }
 
+/* ---------- 前后对比卡（Reveal）：原图 + 成片 + 品牌条，天生适合发短视频/群聊 ---------- */
+function composeReveal(){
+  return new Promise(resolve => {
+    const a = new Image(), b = new Image();
+    let n = 0;
+    const go = () => {
+      if(++n < 2) return;
+      const H = 900, gap = 16, pad = 32, bar = 96;
+      const wa = Math.round(a.width * H / a.height), wb = Math.round(b.width * H / b.height);
+      const c = document.createElement("canvas");
+      c.width = pad*2 + wa + gap + wb; c.height = pad + H + bar;
+      const ctx = c.getContext("2d");
+      ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(a, pad, pad, wa, H);
+      ctx.drawImage(b, pad + wa + gap, pad, wb, H);
+      const fs = Math.round(c.width * 0.026);
+      ctx.textBaseline = "middle";
+      const ty = pad + H + bar/2;
+      ctx.fillStyle = "#3E2F25";
+      ctx.font = `700 ${fs}px Nunito, -apple-system, sans-serif`;
+      ctx.fillText(`🐾 FluffBooth · ${S().captionOf(L(selected.name))}`, pad, ty);
+      ctx.fillStyle = "#8C7A6B";
+      ctx.font = `600 ${Math.round(fs*.9)}px Nunito, -apple-system, sans-serif`;
+      const dm = "fluffbooth.com";
+      ctx.fillText(dm, c.width - pad - ctx.measureText(dm).width, ty);
+      resolve(c.toDataURL("image/jpeg", .9));
+    };
+    a.onload = go; b.onload = go;
+    a.onerror = () => resolve(null); b.onerror = () => resolve(null);
+    a.src = srcDataUrl; b.src = $("resultImg").src;
+  });
+}
+
+async function prepRevealFile(){
+  revealFile = null;
+  try{
+    const url = await composeReveal();
+    if(!url) return;
+    const blob = await (await fetch(url)).blob();
+    revealFile = new File([blob], `${S().fileBase(S().revealName)}${Date.now()}.jpg`, { type: "image/jpeg" });
+  }catch(e){ revealFile = null; }
+}
+
 /* ---------- 结果操作 ---------- */
 // 结果图转 File（data URL → Blob → File），失败则置空、点保存时走下载兜底
 async function prepShareFile(url){
   shareFile = null;
   try{
     const blob = await (await fetch(url)).blob();
-    const name = `毛茸相馆_${selected?selected.name:"作品"}_${Date.now()}.jpg`;
+    const name = `${S().fileBase(selected ? L(selected.name).replace(/\s+/g,"-") : "art")}${Date.now()}.jpg`;
     shareFile = new File([blob], name, { type: blob.type || "image/jpeg" });
   }catch(e){ shareFile = null; }
 }
 
-$("downloadBtn").onclick = async () => {
-  track("download", selected ? selected.id : "");
-  // 移动端（尤其 iOS）：唤起系统分享面板，可直接"存储图像"到相册或分享到微信
-  // 注意：share() 必须在用户手势中同步调用，故 shareFile 已在出图时预先备好
-  if(shareFile && navigator.canShare && navigator.canShare({ files:[shareFile] })){
-    try{ await navigator.share({ files:[shareFile] }); return; }
+// 移动端（尤其 iOS）：唤起系统分享面板，可直接存相册；桌面走常规下载
+// 注意：share() 必须在用户手势中同步调用，故 File 都在出图时预先备好
+async function deliverFile(file, fallbackUrl, fallbackName){
+  if(file && navigator.canShare && navigator.canShare({ files:[file] })){
+    try{ await navigator.share({ files:[file] }); return; }
     catch(e){ if(e && e.name === "AbortError") return; } // 用户取消分享，安静返回
   }
-  // 桌面/不支持分享：常规下载
   const a = document.createElement("a");
-  a.href = $("resultImg").src;
-  a.download = `毛茸相馆_${selected?selected.name:"作品"}_${Date.now()}.jpg`;
+  a.href = fallbackUrl;
+  a.download = fallbackName;
+  a.click();
+}
+
+$("downloadBtn").onclick = () => {
+  track("download", selected ? selected.id : "");
+  deliverFile(shareFile, $("resultImg").src,
+    `${S().fileBase(selected ? L(selected.name).replace(/\s+/g,"-") : "art")}${Date.now()}.jpg`);
+};
+
+$("revealBtn").onclick = async () => {
+  track("download", selected ? selected.id : "");
+  if(revealFile){ deliverFile(revealFile, "", ""); return; }
+  const url = await composeReveal(); // 兜底：预合成失败就现场合成走下载
+  if(!url) return;
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${S().fileBase(S().revealName)}${Date.now()}.jpg`;
   a.click();
 };
 
@@ -840,9 +1236,9 @@ $("shareBtn").onclick = async () => {
     return;
   }
   const shareData = {
-    title: "毛茸相馆",
-    text: `我用毛茸相馆给毛孩子拍了张「${selected?selected.name:"特别"}」风格的照片，你也来试试 🐾`,
-    url: location.origin,
+    title: S().brand,
+    text: S().shareText(selected ? L(selected.name) : "✨"),
+    url: shareUrl(), // 登录用户自动带邀请码，转发即裂变
   };
   // 优先连图一起分享（iOS 分享面板里能选微信/存相册）
   if(shareFile && navigator.canShare && navigator.canShare({ files:[shareFile] })){
@@ -857,21 +1253,22 @@ $("shareBtn").onclick = async () => {
   // 桌面兜底：复制带链接的分享文案
   try{
     await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
-    showError("分享文案已复制，去粘贴给朋友吧 🐾", true);
-  }catch(e){ showError("可手动复制网址分享：" + shareData.url); }
+    showError(S().shareCopied, true);
+  }catch(e){ showError(S().shareManual + shareData.url); }
 };
 $("retryStyle").onclick = () => { hide("result"); show("stepPick"); window.scrollTo({top:0,behavior:"smooth"}); };
 $("newPhoto").onclick = resetAll;
 $("reupload").onclick = resetAll;
 
 function resetAll(){
-  srcDataUrl = null; selected = null;
+  srcDataUrl = null; selected = null; shareFile = null; revealFile = null;
   try{ sessionStorage.removeItem("mr_photo"); sessionStorage.removeItem("mr_sel"); }catch(err){}
   hide("stepPick"); hide("result"); hide("loading"); hideError();
+  stopLoadingLines();
   $("uploadFrame").style.display = "";
   fileInput.value = "";
   $("generateBtn").disabled = true;
-  $("generateBtn").textContent = "先挑一个风格 🐾";
+  $("generateBtn").textContent = S().ctaPick;
   window.scrollTo({top:0,behavior:"smooth"});
 }
 

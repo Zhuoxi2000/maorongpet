@@ -115,16 +115,16 @@ export default async function handler(req, res) {
   }
 
   // ---------- 桌面 popup 模式：JSON POST ----------
-  if (!configured) return res.status(503).json({ error: "登录功能未配置（缺少环境变量）" });
+  if (!configured) return res.status(503).json({ error: "Sign-in not configured (missing env vars)" });
   const { credential, ref } = req.body || {};
-  if (!credential) return res.status(400).json({ error: "缺少登录凭证" });
+  if (!credential) return res.status(400).json({ error: "Missing credential" });
 
   let info;
   try {
     info = await verifyGoogleToken(credential, clientId);
   } catch (e) {
     console.error("tokeninfo failed:", e);
-    return res.status(401).json({ error: "Google 登录校验失败，请重试" });
+    return res.status(401).json({ error: "Google sign-in failed — please try again" });
   }
 
   try {
@@ -143,6 +143,6 @@ export default async function handler(req, res) {
     });
   } catch (e) {
     console.error(e);
-    return res.status(500).json({ error: "登录失败，请稍后重试" });
+    return res.status(500).json({ error: "Sign-in failed — please try again later" });
   }
 }
